@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import Optional
 
-from .message import Message
+from .message import Message, MessageType
 from .relay import Relay
 
 
@@ -14,8 +14,9 @@ class Client:
 
     def __init__ (self, name: str, relay: Relay):
         self.name = name
+        relay.start()
+        relay.put(Message(MessageType.INIT, name))
         self.relay = relay
-        self.relay.start()
 
     
     ### CLASS METHODS ###

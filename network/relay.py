@@ -17,12 +17,11 @@ class Relay(Thread):
                 reader: asyncio.StreamReader, 
                 writer: asyncio.StreamWriter
             ):
-        Thread.__init__(self)
+        Thread.__init__(self, self._relay)
         self.queue = Queue()
         self.reader = reader
         self.running = True
         self.writer = writer
-        asyncio.run(self._relay())
 
     
     ### HELPERS ###
@@ -44,6 +43,7 @@ class Relay(Thread):
             in_msg = await self._read()
             if in_msg is not None:
                 self.queue.put_incoming(in_msg)
+            asyncio.sleep(0.1)
         self.writer.close()
         
     async def _write (self, msg: Message):
@@ -64,3 +64,9 @@ class Relay(Thread):
         
     def put (self, msg: Message):
         self.queue.put_outgoing(msg)
+
+    async def wait_for_get (self) -> Message:
+        msg: Optional[Message] = None
+        while msg is None:
+            msg = await self._read()
+        return msg

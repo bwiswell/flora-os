@@ -2,15 +2,27 @@ from enum import Enum
 
 
 class MessageType(Enum):
-    OTHER = 0
+    PING = 0
+    PONG = 1
+    RECV = 2
+    INIT = 3
+    EXIT = 4
 
 
 class Message:
 
     NEXT_ID = 0
 
-    def __init__ (self, type: MessageType, payload: bytes):
+    def __init__ (
+                self,
+                type: MessageType,
+                src: str,
+                dest: str = 'flora',
+                payload: bytes = bytes()
+            ):
         self.id = Message.NEXT_ID
         Message.NEXT_ID += 1
         self.type = type
+        self.src = src
+        self.dest = dest
         self.payload = payload
