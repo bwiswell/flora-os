@@ -4,19 +4,27 @@ import asyncio
 from threading import Thread
 from typing import Optional
 
+from .io import IO
 from .message import Message, MessageType
 from .relay import Relay
 
 
-class Server(Thread):
+class Server(IO, Thread):
 
-    PORT = '25565'
-
-    def __init__ (self):
+    def __init__ (self, name):
+        IO.__init__(self, name)
         Thread.__init__(self, target=self._start_server)
         self.sensors: Relay = None
         self.traction: Relay = None
         self.start()
+
+
+    ### CLASS METHODS ###
+    @classmethod
+    async def connect (cls, name: str = 'flora') -> Server:
+        server = Server(name)
+        await server.wait_for_ready()
+        return server
 
 
     ### HELPERS ###
@@ -36,7 +44,7 @@ class Server(Thread):
         relay.start()
 
     async def _server (self):
-        server = await asyncio.start_server(self._serve, port = Server.PORT)
+        server = await asyncio.start_server(self._serve, port = IO.PORT)
         async with server:
             await server.serve_forever()
 
@@ -44,9 +52,16 @@ class Server(Thread):
         asyncio.run(self._server())
 
     ### METHODS ###
-    def close (self):
-        self.sensors.close()
-        self.traction.close()
+    async def close (self):
+        print('broadcasting exit message...')
+        await self.put(Message(MessageType.EXIT, 'flora', 'sensors'))
+        await self.put(Message(MessageType.EXIT, 'flora', 'traction'))
+        print('waiting for modules to exit...')
+        await asyncio.sleep(3)
+        print('closing sockets...')
+        await self.sensors.close()
+        await self.traction.close()
+        print('server closed')
 
     async def get (self) -> Optional[Message]:
         msg = await self.sensors.get()
@@ -62,5 +77,6 @@ class Server(Thread):
 
     async def wait_for_ready (self):
         while self.sensors is None or self.traction is None:
+            print('waiting for modules to connect...')
             asyncio.sleep(0.2)
         print('starting FLORA...')

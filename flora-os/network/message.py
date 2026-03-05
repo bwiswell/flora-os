@@ -4,9 +4,8 @@ from enum import Enum
 class MessageType(Enum):
     PING = 0
     PONG = 1
-    RECV = 2
-    INIT = 3
-    EXIT = 4
+    INIT = 2
+    EXIT = 3
 
 
 class Message:
