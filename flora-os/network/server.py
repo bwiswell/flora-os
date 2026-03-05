@@ -48,17 +48,17 @@ class Server(Thread):
         self.sensors.close()
         self.traction.close()
 
-    def get (self) -> Optional[Message]:
-        msg = self.sensors.get()
+    async def get (self) -> Optional[Message]:
+        msg = await self.sensors.get()
         if msg is None:
-            msg = self.traction.get()
+            msg = await self.traction.get()
         return msg
     
-    def put (self, msg: Message):
+    async def put (self, msg: Message):
         if msg.dest == 'sensors':
-            self.sensors.put(msg)
+            await self.sensors.put(msg)
         else:
-            self.traction.put(msg)
+            await self.traction.put(msg)
 
     async def wait_for_ready (self):
         while self.sensors is None or self.traction is None:

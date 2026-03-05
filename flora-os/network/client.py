@@ -14,8 +14,6 @@ class Client:
 
     def __init__ (self, name: str, relay: Relay):
         self.name = name
-        relay.start()
-        relay.put(Message(MessageType.INIT, name))
         self.relay = relay
 
     
@@ -26,6 +24,9 @@ class Client:
             Client.HOSTNAME,
             Client.PORT
         )
+        relay = Relay(reader, writer)
+        relay.start()
+        await relay.put(Message(MessageType.INIT, name))
         return Client(name, Relay(reader, writer))
     
 
@@ -33,8 +34,8 @@ class Client:
     def close (self):
         self.relay.close()
 
-    def get (self) -> Optional[Message]:
-        return self.relay.get()
+    async def get (self) -> Optional[Message]:
+        return await self.relay.get()
 
-    def put (self, msg: Message):
-        self.relay.put(msg)
+    async def put (self, msg: Message):
+        await self.relay.put(msg)
