@@ -13,8 +13,8 @@ async def initialize ():
     elif module == 'sensors':
         await Client.connect('sensors')
     else:
-        Server()
-        await asyncio.sleep(20)
+        server = Server()
+        await server.wait_for_ready()
 
 if __name__ == '__main__':
     asyncio.run(initialize())

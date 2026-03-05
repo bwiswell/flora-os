@@ -20,14 +20,19 @@ class Client:
     ### CLASS METHODS ###
     @classmethod
     async def connect (cls, name: str) -> Client:
-        reader, writer = await asyncio.open_connection(
-            Client.HOSTNAME,
-            Client.PORT
-        )
-        relay = Relay(reader, writer)
-        relay.start()
-        await relay.put(Message(MessageType.INIT, name))
-        return Client(name, Relay(reader, writer))
+        while True:
+            try:
+                reader, writer = await asyncio.open_connection(
+                    Client.HOSTNAME,
+                    Client.PORT
+                )
+                relay = Relay(reader, writer)
+                relay.start()
+                await relay.put(Message(MessageType.INIT, name))
+                return Client(name, Relay(reader, writer))
+            except:
+                print('failed to connect, retrying...')
+                await asyncio.sleep(1)
     
 
     ### METHODS ###
