@@ -1,3 +1,4 @@
+import asyncio
 import sys
 
 from .network import Client, Server
@@ -6,10 +7,13 @@ from .network import Client, Server
 module = sys.argv[1]
 
 
-if __name__ == '__main__':
+async def initialize ():
     if module == 'traction':
-        Client.connect('traction')
+        await Client.connect('traction')
     elif module == 'sensors':
-        Client.connect('sensors')
+        await Client.connect('sensors')
     else:
         Server()
+
+if __name__ == '__main__':
+    asyncio.run(initialize())
