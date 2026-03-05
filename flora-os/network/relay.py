@@ -17,7 +17,7 @@ class Relay(Thread):
                 reader: asyncio.StreamReader, 
                 writer: asyncio.StreamWriter
             ):
-        Thread.__init__(self, self._relay)
+        Thread.__init__(self, target=self._relay)
         self.queue = Queue()
         self.reader = reader
         self.running = True

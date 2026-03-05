@@ -13,7 +13,7 @@ class Server(Thread):
     PORT = '25565'
 
     def __init__ (self):
-        Thread.__init__(self, self._start_server)
+        Thread.__init__(self, target=self._start_server)
         self.sensors: Relay = None
         self.traction: Relay = None
         self.run()
