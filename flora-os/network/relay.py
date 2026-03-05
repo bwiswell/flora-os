@@ -43,7 +43,7 @@ class Relay(Thread):
             in_msg = await self._read()
             if in_msg is not None:
                 self.queue.put_incoming(in_msg)
-            asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
         self.writer.close()
 
     def _start_relay (self):
