@@ -35,11 +35,13 @@ class Server(Thread):
             self.traction = relay
         relay.start()
 
-    async def _start_server (self):
+    async def _server (self):
         server = await asyncio.start_server(self._serve, port = Server.PORT)
         async with server:
             await server.serve_forever()
 
+    def _start_server (self):
+        asyncio.run(self._server())
 
     ### METHODS ###
     def close (self):
