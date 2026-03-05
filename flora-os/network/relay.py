@@ -17,12 +17,12 @@ class Relay(Thread):
                 reader: asyncio.StreamReader, 
                 writer: asyncio.StreamWriter
             ):
-        Thread.__init__(self)
+        Thread.__init__(self, target=self._start_relay)
+        self.finished = False
         self.queue = Queue()
         self.reader = reader
         self.running = True
         self.writer = writer
-        asyncio.run(self._relay())
 
     
     ### HELPERS ###
@@ -39,12 +39,17 @@ class Relay(Thread):
     async def _relay (self):
         while self.running:
             if self.queue.is_outgoing:
-                out_msg = self.queue.get_outgoing()
+                out_msg = await self.queue.get_outgoing()
                 await self._write(out_msg)
             in_msg = await self._read()
             if in_msg is not None:
-                self.queue.put_incoming(in_msg)
+                await self.queue.put_incoming(in_msg)
+            await asyncio.sleep(0.1)
         self.writer.close()
+        await self.writer.wait_closed()
+
+    def _start_relay (self):
+        asyncio.run(self._relay())
         
     async def _write (self, msg: Message):
         data = pickle.dumps(msg)
@@ -53,14 +58,22 @@ class Relay(Thread):
 
 
     ### METHODS ###
-    def close (self): 
+    async def close (self): 
         self.running = False
+        while not self.finished:
+            await asyncio.sleep(0.2)
 
-    def get (self) -> Optional[Message]:
+    async def get (self) -> Optional[Message]:
         if self.queue.is_incoming:
-            return self.queue.get_incoming()
+            return await self.queue.get_incoming()
         else:
             return None
         
-    def put (self, msg: Message):
-        self.queue.put_outgoing(msg)
+    async def put (self, msg: Message):
+        await self.queue.put_outgoing(msg)
+
+    async def wait_for_get (self) -> Message:
+        msg: Optional[Message] = None
+        while msg is None:
+            msg = await self._read()
+        return msg
