@@ -16,6 +16,7 @@ class Server(Thread):
         Thread.__init__(self, self._start_server)
         self.sensors: Relay = None
         self.traction: Relay = None
+        self.run()
 
 
     ### HELPERS ###
