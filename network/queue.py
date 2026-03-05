@@ -1,0 +1,46 @@
+from asyncio import Lock, Queue as AQueue
+
+from .message import Message
+
+
+class Queue:
+
+    def __init__ (self):
+        self.in_lock = Lock()
+        self.incoming = AQueue()
+        self.out_lock = Lock()
+        self.outgoing = AQueue()
+
+    
+    ### PROPERTIES ###
+    @property
+    def is_incoming (self) -> bool:
+        return self.incoming.qsize() > 0
+    
+    @property
+    def is_outgoing (self) -> bool:
+        return self.outgoing.qsize() > 0
+    
+
+    ### METHODS ###
+    def get_incoming (self) -> Message:
+        self.in_lock.acquire()
+        incoming = self.incoming.get()
+        self.in_lock.release()
+        return incoming
+    
+    def get_outgoing (self) -> Message:
+        self.out_lock.acquire()
+        outgoing = self.outgoing.get()
+        self.out_lock.release()
+        return outgoing
+    
+    def put_incoming (self, msg: Message):
+        self.in_lock.acquire()
+        self.incoming.put(msg)
+        self.in_lock.release()
+        
+    def put_outgoing (self, msg: Message):
+        self.out_lock.acquire()
+        self.outgoing.put(msg)
+        self.out_lock.release()
