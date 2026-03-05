@@ -25,22 +25,22 @@ class Queue:
     ### METHODS ###
     async def get_incoming (self) -> Message:
         await self.in_lock.acquire()
-        incoming = self.incoming.get()
+        incoming = await self.incoming.get()
         self.in_lock.release()
         return incoming
     
     async def get_outgoing (self) -> Message:
         await self.out_lock.acquire()
-        outgoing = self.outgoing.get()
+        outgoing = await self.outgoing.get()
         self.out_lock.release()
         return outgoing
     
     async def put_incoming (self, msg: Message):
         await self.in_lock.acquire()
-        self.incoming.put(msg)
+        await self.incoming.put(msg)
         self.in_lock.release()
         
     async def put_outgoing (self, msg: Message):
         await self.out_lock.acquire()
-        self.outgoing.put(msg)
+        await self.outgoing.put(msg)
         self.out_lock.release()
