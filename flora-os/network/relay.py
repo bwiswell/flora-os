@@ -17,7 +17,7 @@ class Relay(Thread):
                 reader: asyncio.StreamReader, 
                 writer: asyncio.StreamWriter
             ):
-        Thread.__init__(self, target=self._relay)
+        Thread.__init__(self, target=self._start_relay)
         self.queue = Queue()
         self.reader = reader
         self.running = True
@@ -45,6 +45,9 @@ class Relay(Thread):
                 self.queue.put_incoming(in_msg)
             asyncio.sleep(0.1)
         self.writer.close()
+
+    def _start_relay (self):
+        asyncio.run(self._relay())
         
     async def _write (self, msg: Message):
         data = pickle.dumps(msg)
