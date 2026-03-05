@@ -14,6 +14,7 @@ async def initialize ():
         await Client.connect('sensors')
     else:
         Server()
+        await asyncio.sleep(20)
 
 if __name__ == '__main__':
     asyncio.run(initialize())
