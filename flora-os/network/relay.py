@@ -40,8 +40,8 @@ class Relay(Thread):
         
     async def _relay (self):
         while self.running:
-            if self.queue.is_outgoing:
-                out_msg = await self.queue.get_outgoing()
+            out_msg = await self.queue.get_outgoing()
+            if out_msg is not None:
                 await self._write(out_msg)
             in_msg = await self._read()
             if in_msg is not None:

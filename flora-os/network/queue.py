@@ -11,36 +11,30 @@ class Queue:
         self.incoming = AQueue()
         self.out_lock = Lock()
         self.outgoing = AQueue()
-
-    
-    ### PROPERTIES ###
-    @property
-    def is_incoming (self) -> bool:
-        return self.incoming.qsize() > 0
-    
-    @property
-    def is_outgoing (self) -> bool:
-        return self.outgoing.qsize() > 0
     
 
     ### METHODS ###
     async def get_incoming (self) -> Optional[Message]:
         print('trying to get message from incoming queue...')
-        print(self.incoming.qsize())
-        if self.incoming.qsize() > 0:
-            print('incoming queue size is non-zero')
-            await self.in_lock.acquire()
-            incoming: Message = await self.incoming.get()
-            self.in_lock.release()
+        await self.in_lock.acquire()
+        incoming: Optional[Message] = None
+        try:
+            incoming = self.incoming.get_nowait()
             print(f'found {incoming.type} in queue')
-            return incoming
-        else:
-            print('nothing in incoming queue')
-            return None
+        except:
+            print('incoming queue is empty')
+        self.in_lock.release()
+        return incoming
     
-    async def get_outgoing (self) -> Message:
+    async def get_outgoing (self) -> Optional[Message]:
+        print('trying to get message from outgoing queue...')
         await self.out_lock.acquire()
-        outgoing = await self.outgoing.get()
+        outgoing: Optional[Message] = None
+        try:
+            outgoing = self.outgoing.get_nowait()
+            print(f'found {outgoing.type} in queue')
+        except:
+            print('outgoing queue is empty')
         self.out_lock.release()
         return outgoing
     
