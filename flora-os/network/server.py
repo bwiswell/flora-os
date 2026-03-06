@@ -12,8 +12,8 @@ from .relay import Relay
 class Server(IO, Thread):
 
     def __init__ (self, name):
-        IO.__init__(self, name)
         Thread.__init__(self, target=self._start_server)
+        IO.__init__(self, name)
         self.sensors: Relay = None
         self.traction: Relay = None
         self.start()
