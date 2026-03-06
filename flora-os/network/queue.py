@@ -25,8 +25,9 @@ class Queue:
     ### METHODS ###
     async def get_incoming (self) -> Message:
         await self.in_lock.acquire()
-        incoming = await self.incoming.get()
+        incoming: Message = await self.incoming.get()
         self.in_lock.release()
+        print(f'found {incoming.type} in queue')
         return incoming
     
     async def get_outgoing (self) -> Message:
@@ -36,6 +37,7 @@ class Queue:
         return outgoing
     
     async def put_incoming (self, msg: Message):
+        print(f'putting {msg.type} in incoming queue...')
         await self.in_lock.acquire()
         await self.incoming.put(msg)
         self.in_lock.release()

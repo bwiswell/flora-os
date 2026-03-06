@@ -30,18 +30,12 @@ class Traction(Controller):
         return Traction(client)
     
 
-    ### HELPERS ###
-    async def _handle_message (self):
-        msg = await self.io.get()
-        if msg is not None:
-            self.handle_message(msg)
-    
-
     ### METHODS ###
     def handle_message (self, msg: Message):
-        super().handle_message(msg)
         print(f'handling {msg.type}...')
-        if msg.type == MessageType.MOVE:
+        if msg.type == MessageType.EXIT:
+            self.running = False
+        elif msg.type == MessageType.MOVE:
             self.handle_move(*Message.decode_move(msg))
         elif msg.type == MessageType.STOP:
             self.handle_stop()

@@ -21,14 +21,14 @@ class Controller:
     ### HELPERS ###
     async def _handle_message (self):
         msg = await self.io.get()
+        print(f'found {msg.type} to handle')
         if msg is not None:
             self.handle_message(msg)
 
 
     ### METHODS ###
     def handle_message (self, msg: Message):
-        if msg.type == MessageType.EXIT:
-            self.running = False
+        raise NotImplementedError
     
     async def run (self):
         while self.running:
