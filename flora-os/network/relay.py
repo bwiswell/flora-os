@@ -68,12 +68,7 @@ class Relay(Thread):
             await asyncio.sleep(0.2)
 
     async def get (self) -> Optional[Message]:
-        print('trying to get message from incoming queue...')
-        if self.queue.is_incoming:
-            print('incoming queue size is non-zero')
-            return await self.queue.get_incoming()
-        else:
-            return None
+        return await self.queue.get_incoming()
         
     async def put (self, msg: Message):
         await self.queue.put_outgoing(msg)

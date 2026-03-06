@@ -1,4 +1,5 @@
 from asyncio import Lock, Queue as AQueue
+from typing import Optional
 
 from .message import Message
 
@@ -23,12 +24,18 @@ class Queue:
     
 
     ### METHODS ###
-    async def get_incoming (self) -> Message:
-        await self.in_lock.acquire()
-        incoming: Message = await self.incoming.get()
-        self.in_lock.release()
-        print(f'found {incoming.type} in queue')
-        return incoming
+    async def get_incoming (self) -> Optional[Message]:
+        print('trying to get message from incoming queue...')
+        if self.incoming.qsize() > 0:
+            print('incoming queue size is non-zero')
+            await self.in_lock.acquire()
+            incoming: Message = await self.incoming.get()
+            self.in_lock.release()
+            print(f'found {incoming.type} in queue')
+            return incoming
+        else:
+            print('nothing in incoming queue')
+            return None
     
     async def get_outgoing (self) -> Message:
         await self.out_lock.acquire()
