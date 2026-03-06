@@ -55,7 +55,7 @@ class Relay(Thread):
         
     async def _write (self, msg: Message):
         await asyncio.sleep(0.3)
-        print('writing...')
+        print(f'writing {msg.type}...')
         data = pickle.dumps(msg)
         self.writer.write(data)
         await self.writer.drain()
@@ -69,6 +69,7 @@ class Relay(Thread):
 
     async def get (self) -> Optional[Message]:
         if self.queue.is_incoming:
+            print('incoming queue size is non-zero')
             return await self.queue.get_incoming()
         else:
             return None

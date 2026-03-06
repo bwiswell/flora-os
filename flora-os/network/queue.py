@@ -41,6 +41,7 @@ class Queue:
         await self.in_lock.acquire()
         await self.incoming.put(msg)
         self.in_lock.release()
+        print(f'incoming queue size is now {self.incoming.qsize()}')
         
     async def put_outgoing (self, msg: Message):
         await self.out_lock.acquire()
