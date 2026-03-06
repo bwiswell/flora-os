@@ -2,6 +2,7 @@ import asyncio
 import sys
 
 from .network import Client, Server
+from .traction import Traction
 
 
 module = sys.argv[1]
@@ -9,7 +10,8 @@ module = sys.argv[1]
 
 async def initialize ():
     if module == 'traction':
-        await Client.connect('traction')
+        traction = await Traction.initialize()
+        await traction.run()
     elif module == 'sensors':
         await Client.connect('sensors')
     else:

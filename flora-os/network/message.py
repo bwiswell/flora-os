@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from enum import Enum
+import json
 
 
 class MessageType(Enum):
@@ -6,6 +9,8 @@ class MessageType(Enum):
     PONG = 1
     INIT = 2
     EXIT = 3
+    MOVE = 4
+    STOP = 5
 
 
 class Message:
@@ -25,3 +30,20 @@ class Message:
         self.src = src
         self.dest = dest
         self.payload = payload
+
+
+    ### CLASS METHODS ###
+    def decode_move (cls, msg: Message) -> tuple[float, float]:
+        stringified = msg.payload.decode('utf-8')
+        data = json.loads(stringified)
+        return data['dl'], data['dr']
+
+    def encode_move (cls, dl: float, dr: float) -> Message:
+        data = { 'dl': dl, 'dr': dr }
+        stringified = json.dumps(data)
+        return Message(
+            MessageType.MOVE,
+            src = 'flora',
+            dest = 'traction',
+            payload = stringified.encode('utf-8')
+        )
