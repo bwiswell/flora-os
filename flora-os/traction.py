@@ -30,6 +30,13 @@ class Traction(Controller):
         return Traction(client)
     
 
+    ### HELPERS ###
+    async def _handle_message (self):
+        msg = await self.io.get()
+        if msg is not None:
+            self.handle_message(msg)
+    
+
     ### METHODS ###
     def handle_message (self, msg: Message):
         super().handle_message(msg)
