@@ -51,8 +51,8 @@ class Traction(Controller):
         self.back.start(l, r)
 
     def handle_stop (self):
-        self.front.start()
-        self.back.start()
+        self.front.stop()
+        self.back.stop()
 
     async def update (self):
         pass
