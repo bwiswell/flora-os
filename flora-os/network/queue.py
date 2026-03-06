@@ -1,4 +1,5 @@
-from asyncio import Lock, Queue as AQueue
+from queue import Queue as AQueue
+from threading import Lock
 from typing import Optional
 
 from .message import Message
