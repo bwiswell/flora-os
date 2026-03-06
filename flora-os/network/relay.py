@@ -28,7 +28,6 @@ class Relay(Thread):
     ### HELPERS ###
     async def _read (self) -> Optional[Message]:
         try:
-            print('trying read...')
             data = await asyncio.wait_for(
                 self.reader.read(Relay.READ_SIZE),
                 Relay.READ_TIMEOUT
@@ -55,6 +54,7 @@ class Relay(Thread):
         asyncio.run(self._relay())
         
     async def _write (self, msg: Message):
+        print('writing...')
         data = pickle.dumps(msg)
         self.writer.write(data)
         await self.writer.drain()
