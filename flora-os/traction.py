@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from buildhat import Motor
+from buildhat import MotorPair
 
 from .controller import Controller
 from .network import Client, Message, MessageType
@@ -17,10 +17,8 @@ class Traction(Controller):
 
     def __init__ (self, client: Client):
         Controller.__init__(self, client)
-        self.fl = Motor(Traction.FL)
-        self.fr = Motor(Traction.FR)
-        self.rl = Motor(Traction.RL)
-        self.rr = Motor(Traction.RR)
+        self.front = MotorPair(Traction.FL, Traction.FR)
+        self.back = MotorPair(Traction.RL, Traction.RR)
 
 
     ### CLASS METHODS ###
@@ -45,16 +43,12 @@ class Traction(Controller):
         l = -clip_and_scale(dl, 100, -Traction.MAX_SPEED, Traction.MAX_SPEED)
         r = clip_and_scale(dr, 100, -Traction.MAX_SPEED, Traction.MAX_SPEED)
         print(f'moving at {l}, {r}...')
-        self.fl.start(l)
-        self.fr.start(r)
-        self.rl.start(l)
-        self.rr.start(r)
+        self.front.start(l, r)
+        self.back.start(l, r)
 
     def handle_stop (self):
-        self.fl.stop()
-        self.fr.stop()
-        self.rl.stop()
-        self.rr.stop()
+        self.front.start()
+        self.back.start()
 
     async def update (self):
         pass
