@@ -3,6 +3,7 @@ from __future__ import annotations
 from ..controller import Controller
 from ..network import Client, Message, MessageType
 
+from .head import Head
 from .mouth import Mouth
 
 
@@ -10,6 +11,7 @@ class Sensors(Controller):
 
     def __init__ (self, client: Client):
         Controller.__init__(self, client)
+        self.head = Head()
         self.mouth = Mouth()
 
 
@@ -25,6 +27,8 @@ class Sensors(Controller):
         print(f'handling {msg.type}...')
         if msg.type == MessageType.EXIT:
             self.running = False
+        elif msg.type == MessageType.LOOK:
+            self.head.update(*Message.decode_look(msg))
         elif msg.type == MessageType.MOUTH:
             self.mouth.update(*Message.decode_mouth(msg))
 

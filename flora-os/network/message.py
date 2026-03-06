@@ -13,7 +13,8 @@ class MessageType(Enum):
     EXIT = 3
     MOVE = 4
     STOP = 5
-    MOUTH = 6
+    LOOK = 6
+    MOUTH = 7
 
 
 class Message:
@@ -37,6 +38,12 @@ class Message:
 
     ### CLASS METHODS ###
     @classmethod
+    def decode_look (cls, msg: Message) -> tuple[int, int]:
+        stringified = msg.payload.decode('utf-8')
+        data = json.loads(stringified)
+        return data['swivel'], data['tilt']
+
+    @classmethod
     def decode_mouth (cls, msg: Message) -> tuple[Expression, Mood]:
         stringified = msg.payload.decode('utf-8')
         data = json.loads(stringified)
@@ -55,6 +62,17 @@ class Message:
     @classmethod
     def init (cls, name: str) -> Message:
         return Message(MessageType.INIT, name)
+    
+    @classmethod
+    def look (cls, swivel: int, tilt: int) -> Message:
+        data = { 'swivel': swivel, 'tilt': tilt }
+        stringified = json.dumps(data)
+        return Message(
+            MessageType.LOOK,
+            src = 'flora',
+            dest = 'sensors',
+            payload = stringified.encode('utf-8')
+        )
     
     @classmethod
     def mouth (cls, expression: Expression, mood: Mood) -> Message:
