@@ -17,6 +17,7 @@ class Queue:
     ### PROPERTIES ###
     @property
     def is_incoming (self) -> bool:
+        print(f'{self.incoming.qsize()} in incoming queue')
         return self.incoming.qsize() > 0
     
     @property
