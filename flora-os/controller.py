@@ -10,7 +10,6 @@ class Controller:
     def __init__ (self, io: IO):
         self.io = io
         self.running = True
-        asyncio.run(self.run())
 
 
     ### CLASS METHODS ###
