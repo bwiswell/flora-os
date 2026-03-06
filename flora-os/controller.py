@@ -21,8 +21,8 @@ class Controller:
     ### HELPERS ###
     async def _handle_message (self):
         msg = await self.io.get()
-        print(f'found {msg.type} to handle')
         if msg is not None:
+            print(f'found {msg.type} to handle')
             self.handle_message(msg)
 
 
