@@ -40,6 +40,7 @@ class Traction(Controller):
     ### METHODS ###
     def handle_message (self, msg: Message):
         super().handle_message(msg)
+        print(f'handling {msg.type}...')
         if msg.type == MessageType.MOVE:
             self.handle_move(*Message.decode_move(msg))
         elif msg.type == MessageType.STOP:
