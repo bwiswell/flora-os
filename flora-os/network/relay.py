@@ -32,7 +32,9 @@ class Relay(Thread):
                 self.reader.read(Relay.READ_SIZE),
                 Relay.READ_TIMEOUT
             )
-            return pickle.loads(data)
+            msg: Message = pickle.loads(data)
+            print(f'received {msg.type}')
+            return msg
         except:
             return None
         
