@@ -19,6 +19,14 @@ class Traction(Controller):
         Controller.__init__(self, client)
         self.front = MotorPair(Traction.FL, Traction.FR)
         self.back = MotorPair(Traction.RL, Traction.RR)
+        self.front._leftmotor.plimit(1.0)
+        self.front._leftmotor.bias(0.4)
+        self.front._rightmotor.plimit(1.0)
+        self.front._rightmotor.bias(0.4)
+        self.back._leftmotor.plimit(1.0)
+        self.back._leftmotor.bias(0.4)
+        self.back._rightmotor.plimit(1.0)
+        self.back._rightmotor.bias(0.4)
 
 
     ### CLASS METHODS ###
