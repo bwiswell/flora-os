@@ -3,6 +3,8 @@ from __future__ import annotations
 from enum import Enum
 import json
 
+from ..common import Expression, Mood
+
 
 class MessageType(Enum):
     PING = 0
@@ -11,6 +13,7 @@ class MessageType(Enum):
     EXIT = 3
     MOVE = 4
     STOP = 5
+    MOUTH = 6
 
 
 class Message:
@@ -34,6 +37,12 @@ class Message:
 
     ### CLASS METHODS ###
     @classmethod
+    def decode_mouth (cls, msg: Message) -> tuple[Expression, Mood]:
+        stringified = msg.payload.decode('utf-8')
+        data = json.loads(stringified)
+        return Expression(data['expression']), Mood(data['mood'])
+
+    @classmethod
     def decode_move (cls, msg: Message) -> tuple[float, float]:
         stringified = msg.payload.decode('utf-8')
         data = json.loads(stringified)
@@ -46,6 +55,17 @@ class Message:
     @classmethod
     def init (cls, name: str) -> Message:
         return Message(MessageType.INIT, name)
+    
+    @classmethod
+    def mouth (cls, expression: Expression, mood: Mood) -> Message:
+        data = { 'expression': expression.value, 'mood': mood.value }
+        stringified = json.dumps(data)
+        return Message(
+            MessageType.MOUTH,
+            src = 'flora',
+            dest = 'sensors',
+            payload = stringified.encode('utf-8')
+        )
 
     @classmethod
     def move (cls, dl: float, dr: float) -> Message:
