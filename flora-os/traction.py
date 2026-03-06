@@ -9,20 +9,15 @@ from .util import clip_and_scale
 
 class Traction(Controller):
 
-    FL = 'C'
-    FR = 'B'
+    L = 'C'
     MAX_SPEED = 100
-    RL = 'D'
-    RR = 'A'
+    R = 'A'
 
     def __init__ (self, client: Client):
         Controller.__init__(self, client)
-        self.front = MotorPair(Traction.FL, Traction.FR)
-        self.back = MotorPair(Traction.RL, Traction.RR)
-        self.front._leftmotor.plimit(1.0)
-        self.front._rightmotor.plimit(1.0)
-        self.back._leftmotor.plimit(1.0)
-        self.back._rightmotor.plimit(1.0)
+        self.motors = MotorPair(Traction.L, Traction.R)
+        self.motors._leftmotor.plimit(1.0)
+        self.motors._rightmotor.plimit(1.0)
 
 
     ### CLASS METHODS ###
@@ -47,12 +42,10 @@ class Traction(Controller):
         l = -clip_and_scale(dl, 100, -Traction.MAX_SPEED, Traction.MAX_SPEED)
         r = clip_and_scale(dr, 100, -Traction.MAX_SPEED, Traction.MAX_SPEED)
         print(f'moving at {l}, {r}...')
-        self.front.start(l, r)
-        self.back.start(l, r)
+        self.motors.start(l, r)
 
     def handle_stop (self):
-        self.front.stop()
-        self.back.stop()
+        self.motors.stop()
 
     async def update (self):
         pass
