@@ -21,6 +21,7 @@ class Client(IO):
     ### CLASS METHODS ###
     @classmethod
     async def connect (cls, name: str) -> Client:
+        tries = 1
         while True:
             try:
                 reader, writer = await asyncio.open_connection(
@@ -28,21 +29,21 @@ class Client(IO):
                     IO.PORT
                 )
                 relay = Relay(reader, writer)
-                relay.start()
-                relay.put(Message.init(name))
+                await relay.write(Message.init(name))
                 print(f'{name} module connected')
                 return Client(name, Relay(reader, writer))
             except:
-                print('failed to connect, retrying...')
-                await asyncio.sleep(1)
+                print(f'failed to connect, retrying ({tries} attemps)...')
+                tries += 1
+                await asyncio.sleep(5)
     
 
     ### METHODS ###
     async def close (self):
         await self.relay.close()
 
-    def get (self) -> Optional[Message]:
-        return self.relay.get()
+    async def read (self) -> Optional[Message]:
+        return await self.relay.read()
 
-    def put (self, msg: Message):
-        self.relay.put(msg)
+    async def write (self, msg: Message):
+        await self.relay.write(msg)
