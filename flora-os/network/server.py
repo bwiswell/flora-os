@@ -12,8 +12,8 @@ from .relay import Relay
 class Server(IO, Thread):
 
     def __init__ (self, name):
-        IO.__init__(self, name)
         Thread.__init__(self, target=self._start_server)
+        IO.__init__(self, name)
         self.sensors: Relay = None
         self.traction: Relay = None
         self.start()
@@ -41,7 +41,6 @@ class Server(IO, Thread):
         else:
             print('traction module connected')
             self.traction = relay
-        relay.start()
 
     async def _server (self):
         server = await asyncio.start_server(self._serve, port = IO.PORT)
@@ -54,8 +53,8 @@ class Server(IO, Thread):
     ### METHODS ###
     async def close (self):
         print('broadcasting exit message...')
-        await self.put(Message(MessageType.EXIT, 'flora', 'sensors'))
-        await self.put(Message(MessageType.EXIT, 'flora', 'traction'))
+        await self.write(Message.exit('sensors'))
+        await self.write(Message.exit('traction'))
         print('waiting for modules to exit...')
         await asyncio.sleep(3)
         print('closing sockets...')
@@ -63,20 +62,20 @@ class Server(IO, Thread):
         await self.traction.close()
         print('server closed')
 
-    async def get (self) -> Optional[Message]:
-        msg = await self.sensors.get()
+    async def read (self) -> Optional[Message]:
+        msg = await self.sensors.read()
         if msg is None:
-            msg = await self.traction.get()
+            msg = await self.traction.read()
         return msg
     
-    async def put (self, msg: Message):
+    async def write (self, msg: Message):
         if msg.dest == 'sensors':
-            await self.sensors.put(msg)
+            await self.sensors.write(msg)
         else:
-            await self.traction.put(msg)
+            await self.traction.write(msg)
 
     async def wait_for_ready (self):
         while self.sensors is None or self.traction is None:
             print('waiting for modules to connect...')
-            asyncio.sleep(0.2)
+            asyncio.sleep(5)
         print('starting FLORA...')

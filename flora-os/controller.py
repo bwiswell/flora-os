@@ -20,25 +20,26 @@ class Controller:
 
     ### HELPERS ###
     async def _handle_message (self):
-        msg = await self.io.get()
+        msg = await self.io.read()
         if msg is not None:
+            print(f'found {msg.type} to handle')
             self.handle_message(msg)
 
 
     ### METHODS ###
     def handle_message (self, msg: Message):
-        if msg.type == MessageType.EXIT:
-            self.running = False
+        raise NotImplementedError
     
     async def run (self):
         while self.running:
             await self._handle_message()
             await self.update()
+            await asyncio.sleep(0.5)
         print(f'closing {self.io.name} module...')
         await self.io.close()
 
     async def send (self, msg: Message):
-        await self.io.put(msg)
+        await self.io.write(msg)
 
     async def update (self):
         raise NotImplementedError

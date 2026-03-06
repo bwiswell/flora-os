@@ -1,4 +1,6 @@
-from buildhat import Motor
+from __future__ import annotations
+
+from buildhat import MotorPair
 
 from .controller import Controller
 from .network import Client, Message, MessageType
@@ -7,48 +9,50 @@ from .util import clip_and_scale
 
 class Traction(Controller):
 
-    FL = 'A'
+    FL = 'C'
     FR = 'B'
     MAX_SPEED = 100
-    RL = 'C'
-    RR = 'D'
+    RL = 'D'
+    RR = 'A'
 
     def __init__ (self, client: Client):
         Controller.__init__(self, client)
-        self.fl = Motor(Traction.FL)
-        self.fr = Motor(Traction.FR)
-        self.rl = Motor(Traction.RL)
-        self.rr = Motor(Traction.RR)
+        self.front = MotorPair(Traction.FL, Traction.FR)
+        self.back = MotorPair(Traction.RL, Traction.RR)
+        self.front._leftmotor.plimit(1.0)
+        self.front._rightmotor.plimit(1.0)
+        self.back._leftmotor.plimit(1.0)
+        self.back._rightmotor.plimit(1.0)
 
 
     ### CLASS METHODS ###
     @classmethod
-    async def initialize (cls) -> Controller:
+    async def initialize (cls) -> Traction:
         client = await Client.connect('traction')
-        return Controller(client)
+        return Traction(client)
     
 
     ### METHODS ###
     def handle_message (self, msg: Message):
-        super().handle_message(msg)
-        if msg.type == MessageType.MOVE:
+        print(f'handling {msg.type}...')
+        if msg.type == MessageType.EXIT:
+            self.running = False
+        elif msg.type == MessageType.MOVE:
             self.handle_move(*Message.decode_move(msg))
         elif msg.type == MessageType.STOP:
             self.handle_stop()
 
     def handle_move (self, dl: float, dr: float):
-        l = clip_and_scale(dl, 100, -Traction.MAX_SPEED, Traction.MAX_SPEED)
+        self.handle_stop()
+        l = -clip_and_scale(dl, 100, -Traction.MAX_SPEED, Traction.MAX_SPEED)
         r = clip_and_scale(dr, 100, -Traction.MAX_SPEED, Traction.MAX_SPEED)
-        self.fl.start(l)
-        self.fr.start(r)
-        self.rl.start(l)
-        self.rr.start(r)
+        print(f'moving at {l}, {r}...')
+        self.front.start(l, r)
+        self.back.start(l, r)
 
     def handle_stop (self):
-        self.fl.stop()
-        self.fr.stop()
-        self.rl.stop()
-        self.rr.stop()
+        self.front.stop()
+        self.back.stop()
 
     async def update (self):
         pass
