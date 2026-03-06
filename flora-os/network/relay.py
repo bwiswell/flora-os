@@ -28,6 +28,7 @@ class Relay(Thread):
     ### HELPERS ###
     async def _read (self) -> Optional[Message]:
         try:
+            print('trying read...')
             data = await asyncio.wait_for(
                 self.reader.read(Relay.READ_SIZE),
                 Relay.READ_TIMEOUT
