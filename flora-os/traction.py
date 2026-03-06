@@ -41,6 +41,7 @@ class Traction(Controller):
     def handle_move (self, dl: float, dr: float):
         l = clip_and_scale(dl, 100, -Traction.MAX_SPEED, Traction.MAX_SPEED)
         r = clip_and_scale(dr, 100, -Traction.MAX_SPEED, Traction.MAX_SPEED)
+        print(f'moving at {l}, {r}...')
         self.fl.start(l)
         self.fr.start(r)
         self.rl.start(l)
