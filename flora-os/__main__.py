@@ -14,6 +14,7 @@ async def initialize ():
         await traction.run()
     elif module == 'sensors':
         await Client.connect('sensors')
+        await asyncio.sleep(60)
     else:
         server = await Server.connect()
         print('backwards...')

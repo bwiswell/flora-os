@@ -34,6 +34,7 @@ class Controller:
         while self.running:
             await self._handle_message()
             await self.update()
+            await asyncio.sleep(0.5)
         print(f'closing {self.io.name} module...')
         await self.io.close()
 
