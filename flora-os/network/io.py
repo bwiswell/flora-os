@@ -23,8 +23,8 @@ class IO:
     async def close (self):
         raise NotImplementedError
 
-    async def get (self) -> Optional[Message]:
+    def get (self) -> Optional[Message]:
         raise NotImplementedError
 
-    async def put (self, msg: Message):
+    def put (self, msg: Message):
         raise NotImplementedError

@@ -12,41 +12,47 @@ class Queue:
         self.incoming = AQueue()
         self.out_lock = Lock()
         self.outgoing = AQueue()
+
+
+    ### PROPERTIES ###
+    @property
+    def is_incoming (self) -> bool:
+        return self.incoming.qsize() > 0
+    
+    @property
+    def is_outgoing (self) -> bool:
+        return self.outgoing.qsize() > 0
     
 
     ### METHODS ###
-    async def get_incoming (self) -> Optional[Message]:
-        print('trying to get message from incoming queue...')
-        await self.in_lock.acquire()
+    def get_incoming (self) -> Optional[Message]:
         incoming: Optional[Message] = None
-        try:
-            incoming = self.incoming.get_nowait()
+        if self.is_incoming:
+            print('trying to get message from incoming queue...')
+            self.in_lock.acquire()
+            incoming = self.incoming.get()
             print(f'found {incoming.type} in queue')
-        except:
-            print('incoming queue is empty')
-        self.in_lock.release()
+            self.in_lock.release()
         return incoming
     
-    async def get_outgoing (self) -> Optional[Message]:
-        print('trying to get message from outgoing queue...')
-        await self.out_lock.acquire()
+    def get_outgoing (self) -> Optional[Message]:
         outgoing: Optional[Message] = None
-        try:
-            outgoing = self.outgoing.get_nowait()
+        if self.is_outgoing:
+            print('trying to get message from outgoing queue...')
+            self.out_lock.acquire()
+            outgoing = self.outgoing.get()
             print(f'found {outgoing.type} in queue')
-        except:
-            print('outgoing queue is empty')
-        self.out_lock.release()
+            self.out_lock.release()
         return outgoing
     
-    async def put_incoming (self, msg: Message):
+    def put_incoming (self, msg: Message):
         print(f'putting {msg.type} in incoming queue...')
-        await self.in_lock.acquire()
-        await self.incoming.put(msg)
+        self.in_lock.acquire()
+        self.incoming.put(msg)
         self.in_lock.release()
         print(f'incoming queue size is now {self.incoming.qsize()}')
         
-    async def put_outgoing (self, msg: Message):
-        await self.out_lock.acquire()
-        await self.outgoing.put(msg)
+    def put_outgoing (self, msg: Message):
+        self.out_lock.acquire()
+        self.outgoing.put(msg)
         self.out_lock.release()

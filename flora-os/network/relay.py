@@ -40,15 +40,16 @@ class Relay(Thread):
         
     async def _relay (self):
         while self.running:
-            out_msg = await self.queue.get_outgoing()
+            out_msg = self.queue.get_outgoing()
             if out_msg is not None:
                 await self._write(out_msg)
             in_msg = await self._read()
             if in_msg is not None:
-                await self.queue.put_incoming(in_msg)
+                self.queue.put_incoming(in_msg)
             await asyncio.sleep(0.1)
         self.writer.close()
         await self.writer.wait_closed()
+        self.finished = True
 
     def _start_relay (self):
         asyncio.run(self._relay())
@@ -62,16 +63,16 @@ class Relay(Thread):
 
 
     ### METHODS ###
-    async def close (self): 
+    async def close (self):
         self.running = False
         while not self.finished:
             await asyncio.sleep(0.2)
 
-    async def get (self) -> Optional[Message]:
-        return await self.queue.get_incoming()
+    def get (self) -> Optional[Message]:
+        return self.queue.get_incoming()
         
-    async def put (self, msg: Message):
-        await self.queue.put_outgoing(msg)
+    def put (self, msg: Message):
+        self.queue.put_outgoing(msg)
 
     async def wait_for_get (self) -> Message:
         msg: Optional[Message] = None

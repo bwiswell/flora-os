@@ -20,7 +20,7 @@ class Controller:
 
     ### HELPERS ###
     async def _handle_message (self):
-        msg = await self.io.get()
+        msg = self.io.get()
         if msg is not None:
             print(f'found {msg.type} to handle')
             self.handle_message(msg)
@@ -39,7 +39,7 @@ class Controller:
         await self.io.close()
 
     async def send (self, msg: Message):
-        await self.io.put(msg)
+        self.io.put(msg)
 
     async def update (self):
         raise NotImplementedError

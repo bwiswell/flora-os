@@ -29,7 +29,7 @@ class Client(IO):
                 )
                 relay = Relay(reader, writer)
                 relay.start()
-                await relay.put(Message.init(name))
+                relay.put(Message.init(name))
                 print(f'{name} module connected')
                 return Client(name, Relay(reader, writer))
             except:
@@ -41,8 +41,8 @@ class Client(IO):
     async def close (self):
         await self.relay.close()
 
-    async def get (self) -> Optional[Message]:
-        return await self.relay.get()
+    def get (self) -> Optional[Message]:
+        return self.relay.get()
 
-    async def put (self, msg: Message):
-        await self.relay.put(msg)
+    def put (self, msg: Message):
+        self.relay.put(msg)

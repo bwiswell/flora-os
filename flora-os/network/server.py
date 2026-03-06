@@ -54,8 +54,8 @@ class Server(IO, Thread):
     ### METHODS ###
     async def close (self):
         print('broadcasting exit message...')
-        await self.put(Message.exit('sensors'))
-        await self.put(Message.exit('traction'))
+        self.put(Message.exit('sensors'))
+        self.put(Message.exit('traction'))
         print('waiting for modules to exit...')
         await asyncio.sleep(3)
         print('closing sockets...')
@@ -64,16 +64,16 @@ class Server(IO, Thread):
         print('server closed')
 
     async def get (self) -> Optional[Message]:
-        msg = await self.sensors.get()
+        msg = self.sensors.get()
         if msg is None:
-            msg = await self.traction.get()
+            msg = self.traction.get()
         return msg
     
     async def put (self, msg: Message):
         if msg.dest == 'sensors':
-            await self.sensors.put(msg)
+            self.sensors.put(msg)
         else:
-            await self.traction.put(msg)
+            self.traction.put(msg)
 
     async def wait_for_ready (self):
         while self.sensors is None or self.traction is None:
