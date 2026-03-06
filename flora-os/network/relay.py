@@ -54,6 +54,7 @@ class Relay(Thread):
         asyncio.run(self._relay())
         
     async def _write (self, msg: Message):
+        await asyncio.sleep(0.3)
         print('writing...')
         data = pickle.dumps(msg)
         self.writer.write(data)
