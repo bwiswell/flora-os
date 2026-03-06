@@ -28,12 +28,11 @@ class Queue:
     ### METHODS ###
     def get_incoming (self) -> Optional[Message]:
         incoming: Optional[Message] = None
-        if self.is_incoming:
-            print('trying to get message from incoming queue...')
-            self.in_lock.acquire()
+        try:
             incoming = self.incoming.get()
             print(f'found {incoming.type} in queue')
-            self.in_lock.release()
+        except:
+            print('nothing found in incoming queue')
         return incoming
     
     def get_outgoing (self) -> Optional[Message]:
