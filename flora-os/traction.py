@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from buildhat import Motor
 
 from .controller import Controller
@@ -23,9 +25,9 @@ class Traction(Controller):
 
     ### CLASS METHODS ###
     @classmethod
-    async def initialize (cls) -> Controller:
+    async def initialize (cls) -> Traction:
         client = await Client.connect('traction')
-        return Controller(client)
+        return Traction(client)
     
 
     ### METHODS ###
