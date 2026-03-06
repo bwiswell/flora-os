@@ -15,8 +15,7 @@ async def initialize ():
     elif module == 'sensors':
         await Client.connect('sensors')
     else:
-        server = Server()
-        await server.wait_for_ready()
+        server = await Server.connect()
         await server.put(Message.move(-0.5, -0.5))
         await asyncio.sleep(5)
         await server.put(Message.move(0.5, 0.5))
