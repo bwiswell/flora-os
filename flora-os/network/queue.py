@@ -26,6 +26,7 @@ class Queue:
     ### METHODS ###
     async def get_incoming (self) -> Optional[Message]:
         print('trying to get message from incoming queue...')
+        print(self.incoming.qsize())
         if self.incoming.qsize() > 0:
             print('incoming queue size is non-zero')
             await self.in_lock.acquire()
