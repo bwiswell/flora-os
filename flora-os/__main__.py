@@ -1,7 +1,7 @@
 import asyncio
 import sys
 
-from .network import Client, Server
+from .network import Client, Message, Server
 from .traction import Traction
 
 
@@ -17,6 +17,14 @@ async def initialize ():
     else:
         server = Server()
         await server.wait_for_ready()
+        await server.put(Message.move(-0.5, -0.5))
+        await asyncio.sleep(5)
+        await server.put(Message.move(0.5, 0.5))
+        await asyncio.sleep(5)
+        await server.put(Message.stop())
+        await asyncio.sleep(5)
+        await server.close()
+        server.join()
 
 if __name__ == '__main__':
     asyncio.run(initialize())

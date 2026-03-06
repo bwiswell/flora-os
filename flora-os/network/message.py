@@ -33,12 +33,22 @@ class Message:
 
 
     ### CLASS METHODS ###
+    @classmethod
     def decode_move (cls, msg: Message) -> tuple[float, float]:
         stringified = msg.payload.decode('utf-8')
         data = json.loads(stringified)
         return data['dl'], data['dr']
+    
+    @classmethod
+    def exit (cls, dest: str) -> Message:
+        return Message(MessageType.EXIT, 'flora', dest)
+    
+    @classmethod
+    def init (cls, name: str) -> Message:
+        return Message(MessageType.INIT, name)
 
-    def encode_move (cls, dl: float, dr: float) -> Message:
+    @classmethod
+    def move (cls, dl: float, dr: float) -> Message:
         data = { 'dl': dl, 'dr': dr }
         stringified = json.dumps(data)
         return Message(
@@ -47,3 +57,7 @@ class Message:
             dest = 'traction',
             payload = stringified.encode('utf-8')
         )
+    
+    @classmethod
+    def stop (cls) -> Message:
+        return Message(MessageType.STOP, 'flora', 'traction')

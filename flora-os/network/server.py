@@ -54,8 +54,8 @@ class Server(IO, Thread):
     ### METHODS ###
     async def close (self):
         print('broadcasting exit message...')
-        await self.put(Message(MessageType.EXIT, 'flora', 'sensors'))
-        await self.put(Message(MessageType.EXIT, 'flora', 'traction'))
+        await self.put(Message.exit('sensors'))
+        await self.put(Message.exit('traction'))
         print('waiting for modules to exit...')
         await asyncio.sleep(3)
         print('closing sockets...')

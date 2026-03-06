@@ -7,11 +7,11 @@ from .util import clip_and_scale
 
 class Traction(Controller):
 
-    FL = 'A'
+    FL = 'C'
     FR = 'B'
     MAX_SPEED = 100
-    RL = 'C'
-    RR = 'D'
+    RL = 'D'
+    RR = 'A'
 
     def __init__ (self, client: Client):
         Controller.__init__(self, client)

@@ -4,7 +4,7 @@ import asyncio
 from typing import Optional
 
 from .io import IO
-from .message import Message, MessageType
+from .message import Message
 from .relay import Relay
 
 
@@ -29,7 +29,7 @@ class Client(IO):
                 )
                 relay = Relay(reader, writer)
                 relay.start()
-                await relay.put(Message(MessageType.INIT, name))
+                await relay.put(Message.init(name))
                 print(f'{name} module connected')
                 return Client(name, Relay(reader, writer))
             except:
