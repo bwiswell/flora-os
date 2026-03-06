@@ -18,10 +18,10 @@ async def initialize ():
     else:
         server = await Server.connect()
         print('backwards...')
-        await server.write(Message.move(-0.5, -0.5))
+        await server.write(Message.move(-0.6, -0.6))
         await asyncio.sleep(5)
         print('forwards...')
-        await server.write(Message.move(0.5, 0.5))
+        await server.write(Message.move(0.6, 0.6))
         await asyncio.sleep(5)
         print('stopping...')
         await server.write(Message.stop())
