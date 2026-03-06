@@ -15,6 +15,8 @@ class MessageType(Enum):
     STOP = 5
     LOOK = 6
     MOUTH = 7
+    SCAN = 8
+    SONAR = 9
 
 
 class Message:
@@ -56,6 +58,15 @@ class Message:
         return data['dl'], data['dr']
     
     @classmethod
+    def decode_sonar (
+                cls,
+                msg: Message
+            ) -> tuple[list[int], list[float], list[float]]:
+        stringified = msg.payload.decode('utf-8')
+        data = json.loads(stringified)
+        return data['angles'], data['left'], data['right']
+    
+    @classmethod
     def exit (cls, dest: str) -> Message:
         return Message(MessageType.EXIT, 'flora', dest)
     
@@ -93,6 +104,26 @@ class Message:
             MessageType.MOVE,
             src = 'flora',
             dest = 'traction',
+            payload = stringified.encode('utf-8')
+        )
+    
+    @classmethod
+    def scan (cls) -> Message:
+        return Message(MessageType.SCAN, 'flora', 'sensors')
+    
+    @classmethod
+    def sonar (
+                cls,
+                angles: list[int],
+                left: list[float],
+                right: list[float]
+            ) -> Message:
+        data = { 'angles': angles, 'left': left, 'right': right }
+        stringified = json.dumps(data)
+        return Message(
+            MessageType.SONAR,
+            src = 'sensors',
+            dest = 'flora',
             payload = stringified.encode('utf-8')
         )
     
