@@ -1,7 +1,7 @@
 import asyncio
 import sys
 
-from .network import Server
+from .flora import Flora
 from .sensors import Sensors
 from .traction import Traction
 
@@ -17,8 +17,8 @@ async def initialize ():
         sensors = await Sensors.initialize()
         await sensors.run()
     else:
-        server = await Server.connect()
-        await asyncio.sleep(60)
+        flora = await Flora.initialize()
+        await flora.run()
 
 if __name__ == '__main__':
     asyncio.run(initialize())

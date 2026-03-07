@@ -7,6 +7,8 @@ from .network import IO, Message, MessageType
 
 class Controller:
 
+    INTERRUPT = 0.3
+
     def __init__ (self, io: IO):
         self.io = io
         self.running = True
@@ -33,9 +35,13 @@ class Controller:
     async def run (self):
         while self.running:
             await self._handle_message()
-            await asyncio.sleep(0.5)
+            await self.update()
+            await asyncio.sleep(Controller.INTERRUPT)
         print(f'closing {self.io.name} module...')
         await self.io.close()
 
     async def send (self, msg: Message):
         await self.io.write(msg)
+
+    async def update (self):
+        raise NotImplementedError
