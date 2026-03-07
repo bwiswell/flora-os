@@ -80,14 +80,14 @@ class FineMotor:
                 start: int,
                 end: int,
                 interval: int,
-                callback: Callable[[int], None]
+                callback: Callable[[int, int], None]
             ):
         curr = self.motor.get_aposition()
         if abs(curr) > 5:
             self.reset('shortest')
         res = self.run_to_position(start, 'anticlockwise')
-        callback(res)
-        for angle in range(start + interval, end + 1, interval):
+        callback(0, res)
+        for i, angle in enumerate(range(start + interval, end + 1, interval)):
             res = self.run_to_position(angle, 'clockwise')
-            callback(res)
+            callback(i, res)
         self.reset('anticlockwise')

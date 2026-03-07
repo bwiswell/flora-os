@@ -1,10 +1,9 @@
 import asyncio
 import sys
 
-from .network import Client, Message, Server
+from .network import Server
+from .sensors import Sensors
 from .traction import Traction
-
-from .test import test
 
 
 module = sys.argv[1]
@@ -15,23 +14,11 @@ async def initialize ():
         traction = await Traction.initialize()
         await traction.run()
     elif module == 'sensors':
-        await Client.connect('sensors')
-        await asyncio.sleep(60)
+        sensors = await Sensors.initialize()
+        await sensors.run()
     else:
         server = await Server.connect()
-        print('backwards...')
-        await server.write(Message.move(-0.7, -0.7))
-        await asyncio.sleep(5)
-        print('forwards...')
-        await server.write(Message.move(0.7, 0.7))
-        await asyncio.sleep(5)
-        print('stopping...')
-        await server.write(Message.stop())
-        await asyncio.sleep(5)
-        print('closing...')
-        await server.close()
-        server.join()
+        await asyncio.sleep(60)
 
 if __name__ == '__main__':
-    #asyncio.run(initialize())
-    test()
+    asyncio.run(initialize())
