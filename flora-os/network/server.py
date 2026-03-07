@@ -1,30 +1,21 @@
 from __future__ import annotations
 
 import asyncio
-from threading import Thread
 from typing import Optional
 
 from .io import IO
-from .message import Message, MessageType
+from .message import Message
 from .relay import Relay
 
 
-class Server(IO, Thread):
+class Server(IO):
 
-    def __init__ (self, name):
-        Thread.__init__(self, target=self._start_server)
-        IO.__init__(self, name)
+    def __init__ (self):
+        IO.__init__(self, 'flora')
         self.sensors: Relay = None
         self.traction: Relay = None
-        self.start()
-
-
-    ### CLASS METHODS ###
-    @classmethod
-    async def connect (cls, name: str = 'flora') -> Server:
-        server = Server(name)
-        await server.wait_for_ready()
-        return server
+        self.incoming: asyncio.Queue = asyncio.Queue()
+        self.outgoing: asyncio.Queue = asyncio.Queue()
 
 
     ### HELPERS ###
@@ -41,14 +32,6 @@ class Server(IO, Thread):
         else:
             print('traction module connected')
             self.traction = relay
-
-    async def _server (self):
-        server = await asyncio.start_server(self._serve, port = IO.PORT)
-        async with server:
-            await server.serve_forever()
-
-    def _start_server (self):
-        asyncio.run(self._server())
 
     ### METHODS ###
     async def close (self):
@@ -67,6 +50,11 @@ class Server(IO, Thread):
         if msg is None:
             msg = await self.traction.read()
         return msg
+
+    async def serve (self):
+        server = await asyncio.start_server(self._serve, port = IO.PORT)
+        async with server:
+            await server.serve_forever()
     
     async def write (self, msg: Message):
         if msg.dest == 'sensors':
