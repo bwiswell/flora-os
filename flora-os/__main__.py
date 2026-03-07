@@ -1,7 +1,7 @@
 import asyncio
 import sys
 
-from .network import Client, Message, Server
+from .network import Server
 from .sensors import Sensors
 from .traction import Traction
 
@@ -17,10 +17,8 @@ async def initialize ():
         sensors = await Sensors.initialize()
         await sensors.run()
     else:
-        server = Server()
-        serve = asyncio.create_task(server.serve())
-        await server.wait_for_ready()
-        await serve
+        server = await Server.connect()
+        await asyncio.sleep(60)
 
 if __name__ == '__main__':
     asyncio.run(initialize())
