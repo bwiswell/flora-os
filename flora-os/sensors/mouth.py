@@ -9,11 +9,25 @@ class Mouth:
 
     def __init__ (self):
         self.matrix = Matrix(Mouth.PORT)
-        self.update(Expression.FLAT, Mood.NONE)
+        self.initialize()
 
 
     ### METHODS ###
+    def initialize (self):
+        self.update(Expression.FLAT, Mood.NONE)
+
+    def ready (self):
+        self.update(Expression.RESTING, Mood.CALM)
+
+    def sonar (self, idx: int):
+        if idx % 2 == 0:
+            self.update(Expression.OPEN, Mood.CURIOUS)
+        else:
+            self.update(Expression.CORNERS, Mood.CURIOUS)
+
     def update (self, expression: Expression, mood: Mood):
+        self.expression = expression
+        self.mood = mood
         pattern = EXPRESSIONS[expression]
         matrix = [
             [(mood.value if val else 0, 10) for val in row]

@@ -6,6 +6,7 @@ from enum import Enum
 class Mood(Enum):
     ADORING = 1
     SAD = 3
+    CALM = 4
     CONFUSED = 5
     CURIOUS = 6
     HAPPY = 7

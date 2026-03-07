@@ -14,7 +14,7 @@ class Sensors(Controller):
         Controller.__init__(self, client)
         self.head = Head()
         self.mouth = Mouth()
-        self.sonar = Sonar()
+        self.sonar = Sonar(self.mouth)
 
 
     ### CLASS METHODS ###
