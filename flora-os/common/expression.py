@@ -20,13 +20,13 @@ EXPRESSIONS = {
         [False, True, False]
     ],
     Expression.RESTING: [
-        [False, True, False],
-        [False, True, False],
-        [True, False, True]
-    ],
-    Expression.SMILE: [
-        [False, False, False],
+        [True, False, True],
         [True, True, True],
         [False, True, False]
+    ],
+    Expression.SMILE: [
+        [True, True, True],
+        [True, False, True],
+        [True, False, True]
     ]
 }

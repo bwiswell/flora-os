@@ -9,7 +9,7 @@ class Mouth:
 
     def __init__ (self):
         self.matrix = Matrix(Mouth.PORT)
-        self.update(Expression.RESTING, Mood.NONE)
+        self.update(Expression.FLAT, Mood.NONE)
 
 
     ### METHODS ###

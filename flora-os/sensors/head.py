@@ -1,5 +1,4 @@
-from buildhat import Motor
-
+from ..common import FineMotor
 from ..util import clip
 
 
@@ -13,19 +12,19 @@ class Head:
     TILT_PORT = 'A'
 
     def __init__ (self):
-        self.swivel = Motor(Head.SWIVEL_PORT)
-        self.tilt = Motor(Head.TILT_PORT)
+        self.swivel = FineMotor(Head.SWIVEL_PORT, plimit = 0.7)
+        self.tilt = FineMotor(Head.TILT_PORT, plimit = 0.7)
 
     
     ### METHODS ###
     def update (self, swivel: int, tilt: int):
         self.swivel.run_to_position(
             clip(swivel, Head.MIN_SWIVEL, Head.MAX_SWIVEL),
-            speed = 60,
-            blocking = False
+            blocking = False,
+            speed_limit = 50
         )
         self.tilt.run_to_position(
-            clip(swivel, Head.MIN_TILT, Head.MAX_TILT),
-            speed = 60,
-            blocking = False
+            clip(tilt, Head.MIN_TILT, Head.MAX_TILT),
+            blocking = False,
+            speed_limit = 50
         )

@@ -5,6 +5,7 @@ from ..network import Client, Message, MessageType
 
 from .head import Head
 from .mouth import Mouth
+from .sonar import Sonar
 
 
 class Sensors(Controller):
@@ -13,6 +14,7 @@ class Sensors(Controller):
         Controller.__init__(self, client)
         self.head = Head()
         self.mouth = Mouth()
+        self.sonar = Sonar()
 
 
     ### CLASS METHODS ###
@@ -31,6 +33,6 @@ class Sensors(Controller):
             self.head.update(*Message.decode_look(msg))
         elif msg.type == MessageType.MOUTH:
             self.mouth.update(*Message.decode_mouth(msg))
-
-    async def update (self):
-        pass
+        elif msg.type == MessageType.SCAN:
+            angles, left, right = self.sonar.scan()
+            self.send(Message.sonar(angles, left, right))
