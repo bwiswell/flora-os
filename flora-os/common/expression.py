@@ -2,13 +2,19 @@ from enum import Enum
 
 
 class Expression(Enum):
-    FLAT = 0
-    OPEN = 1
-    RESTING = 2
-    SMILE = 3
+    CORNERS = 0
+    FLAT = 1
+    OPEN = 2
+    RESTING = 3
+    SMILE = 4
 
 
 EXPRESSIONS = {
+    Expression.CORNERS: [
+        [True, False, True],
+        [False, False, False],
+        [True, False, True]
+    ],
     Expression.FLAT: [
         [False, False, False],
         [True, True, True],

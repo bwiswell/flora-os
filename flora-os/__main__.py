@@ -4,6 +4,8 @@ import sys
 from .network import Client, Message, Server
 from .traction import Traction
 
+from .test import test
+
 
 module = sys.argv[1]
 
@@ -31,4 +33,5 @@ async def initialize ():
         server.join()
 
 if __name__ == '__main__':
-    asyncio.run(initialize())
+    #asyncio.run(initialize())
+    test()
