@@ -17,20 +17,10 @@ async def initialize ():
         sensors = await Sensors.initialize()
         await sensors.run()
     else:
-        server = await Server.connect()
-        print('backwards...')
-        await server.write(Message.move(-0.7, -0.7))
-        await asyncio.sleep(5)
-        print('forwards...')
-        await server.write(Message.move(0.7, 0.7))
-        await asyncio.sleep(5)
-        print('stopping...')
-        await server.write(Message.stop())
-        await asyncio.sleep(5)
-        print('closing...')
-        await server.close()
-        server.join()
+        server = Server()
+        serve = asyncio.create_task(server.serve())
+        await server.wait_for_ready()
+        await serve
 
 if __name__ == '__main__':
-    #asyncio.run(initialize())
-    test()
+    asyncio.run(initialize())
