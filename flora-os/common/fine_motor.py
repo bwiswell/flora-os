@@ -18,11 +18,12 @@ class FineMotor:
     ### HELPERS ###
     def _from_motor_apos (self, apos: int, was_positive: bool) -> int:
         if apos < 0 and was_positive:
-            return 180 + (apos + 180)
+            normalized = 180 + (apos + 180)
         elif apos > 0 and not was_positive:
-            return -180 - (180 - apos)
+            normalized = -180 - (180 - apos)
         else:
-            return apos
+            normalized = apos
+        return round(normalized / self.ratio)
 
     def _to_motor_apos (self, apos: int) -> int:
         scaled = round(apos * self.ratio)
@@ -58,7 +59,7 @@ class FineMotor:
         print(f'target: {degrees}, result: {result}')
         return result
 
-    async def sweep (
+    def sweep (
                 self,
                 start: int,
                 end: int,
