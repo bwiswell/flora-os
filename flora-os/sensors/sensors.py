@@ -37,5 +37,8 @@ class Sensors(Controller):
             angles, left, right = self.sonar.scan()
             self.send(Message.sonar(angles, left, right))
 
+    async def setup (self):
+        pass
+
     async def update (self):
         pass

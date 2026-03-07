@@ -18,8 +18,14 @@ class Flora(Controller):
     
 
     ### METHODS ###
+    async def exit (self):
+        await super().exit()
+
     def handle_message (self, msg: Message):
         print(f'handling {msg.type}...')
+
+    async def setup (self):
+        pass
 
     async def update (self):
         pass

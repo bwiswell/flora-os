@@ -47,5 +47,8 @@ class Traction(Controller):
     def handle_stop (self):
         self.motors.stop()
 
+    async def setup (self):
+        pass
+
     async def update (self):
         pass
