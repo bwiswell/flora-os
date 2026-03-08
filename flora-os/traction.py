@@ -28,7 +28,7 @@ class Traction(Controller):
     
 
     ### METHODS ###
-    def handle_message (self, msg: Message):
+    async def handle_message (self, msg: Message):
         print(f'handling {msg.type}...')
         if msg.type == MessageType.EXIT:
             self.running = False
