@@ -7,6 +7,8 @@ from filterpy.kalman import KalmanFilter
 import numpy as np
 from sense_hat import SenseHat
 
+from ..common import Pos
+
 
 class IMU:
 
@@ -25,8 +27,7 @@ class IMU:
         self.task: asyncio.Task = None
 
         self.write_lock = asyncio.Lock()
-        self.x = 0.0
-        self.y = 0.0
+        self.pos = Pos()
         self._heading = 0.0
 
         self.kfx = self._get_kf()
@@ -100,8 +101,7 @@ class IMU:
                 kf.predict()
                 kf.update(val)
 
-            self.x = self.kfx.x[0]
-            self.y = self.kfy.x[0]
+            self.pos = Pos(self.kfx.x[0], self.kfy.x[0])
             self._heading = head
             self.last = curr
 
@@ -110,20 +110,18 @@ class IMU:
 
 
     ### METHODS ###
-    def end (self):
-        self.task.cancel()
-
     def start (self):
         self.task = asyncio.create_task(self._run())
+    
+    def stop (self):
+        self.task.cancel()
 
     async def update (
                 self,
-                x: float,
-                y: float,
+                pos: Pos,
                 heading: Optional[float] = None
             ):
         await self.write_lock.acquire()
-        self.x = x
-        self.y = y
+        self.pos = pos
         if heading is not None: self.heading = math.radians(heading)
         self.write_lock.release()

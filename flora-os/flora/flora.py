@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import asyncio
 
+from sense_hat import SenseHat
+
 from ..common import DistanceSensor
 from ..controller import Controller
 from ..network import Message, MessageType, Server
+
+from .imu import IMU
 
 
 class Flora(Controller):
@@ -16,6 +20,8 @@ class Flora(Controller):
 
     def __init__ (self, server: Server):
         Controller.__init__(self, server)
+        self.hat = SenseHat()
+        self.imu = IMU(self.hat)
 
         # Collision tasking/event flags
         self.collision: asyncio.Task = None
@@ -59,6 +65,7 @@ class Flora(Controller):
     ### METHODS ###
     async def exit (self):
         self.collision.cancel()
+        self.imu.stop()
         await self.io.close()
 
     async def handle_message (self, msg: Message):
@@ -69,6 +76,7 @@ class Flora(Controller):
 
     async def setup (self):
         self.collision = asyncio.create_task(self._collision())
+        self.imu.start()
 
     async def update (self):
         pass
