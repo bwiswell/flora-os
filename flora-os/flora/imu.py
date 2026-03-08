@@ -7,7 +7,7 @@ from filterpy.kalman import KalmanFilter
 import numpy as np
 from sense_hat import SenseHat
 
-from ..common import Pos
+from ..common import Pose
 
 
 class IMU:
@@ -27,8 +27,7 @@ class IMU:
         self.task: asyncio.Task = None
 
         self.write_lock = asyncio.Lock()
-        self.pos = Pos()
-        self._heading = 0.0
+        self.pose = Pose()
 
         self.kfx = self._get_kf()
         self.kfy = self._get_kf()
@@ -46,10 +45,6 @@ class IMU:
     @property
     def acc_yaw (self) -> float:
         return self.hat.get_gyroscope_raw()['z']
-
-    @property
-    def heading (self) -> float:
-        return math.degrees(self._heading)
     
 
     ### HELPERS ###
@@ -78,7 +73,7 @@ class IMU:
             d_t = curr - self.last
 
             d_yaw = a_yaw * d_t
-            head = self._heading + d_yaw
+            head = self.pose.theta + d_yaw
 
             a_gx = a_x * math.cos(head) - a_y * math.sin(head)
             a_gy = a_y * math.sin(head) + a_y * math.cos(head)
@@ -103,8 +98,7 @@ class IMU:
                 kf.predict()
                 kf.update(val)
 
-            self.pos = Pos(self.kfx.x[0], self.kfy.x[0])
-            self._heading = head
+            self.pose = Pose(self.kfx.x[0], self.kfy.x[0], head)
             self.last = curr
 
             self.write_lock.release()
@@ -118,12 +112,7 @@ class IMU:
     def stop (self):
         self.task.cancel()
 
-    async def update (
-                self,
-                pos: Pos,
-                heading: Optional[float] = None
-            ):
+    async def update (self, pose: Pose):
         await self.write_lock.acquire()
-        self.pos = pos
-        if heading is not None: self.heading = math.radians(heading)
+        self.pose = pose
         self.write_lock.release()
