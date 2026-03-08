@@ -70,14 +70,16 @@ class IMU:
     async def _run (self):
         while True:
             await self.write_lock.acquire()
+
             curr = time.time()
+            a_yaw = self.acc_yaw
+            a_x, a_y = self.acc_xy
+
             d_t = curr - self.last
 
-            a_yaw = self.acc_yaw
             d_yaw = a_yaw * d_t
             head = self._heading + d_yaw
 
-            a_x, a_y = self.acc_xy
             a_gx = a_x * math.cos(head) - a_y * math.sin(head)
             a_gy = a_y * math.sin(head) + a_y * math.cos(head)
 
