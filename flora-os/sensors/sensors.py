@@ -34,7 +34,7 @@ class Sensors(Controller):
         elif msg.type == MessageType.MOUTH:
             self.mouth.update(*Message.decode_mouth(msg))
         elif msg.type == MessageType.SCAN:
-            angles, left, right = self.sonar.scan()
+            angles, left, right = await self.sonar.scan()
             self.send(Message.sonar(angles, left, right))
 
     async def setup (self):

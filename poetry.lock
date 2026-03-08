@@ -100,7 +100,7 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "ce82f40d6bf5f9fb92c9da84d277f0f9d976a75768db07132ab47884bf177dbd"
+content-hash = "560a30636ca114a50761b28cad9acdd9ee071586638492e27fd312d583040d41"
 
 [metadata.files]
 buildhat = [

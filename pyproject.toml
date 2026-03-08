@@ -7,6 +7,7 @@ authors = ["Benj Wiswell <benjwiswell@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 buildhat = "^0.9.0"
+gpiozero = "^2.0.1"
 
 [tool.poetry.dev-dependencies]
 
