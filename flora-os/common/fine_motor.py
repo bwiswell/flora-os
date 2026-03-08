@@ -75,12 +75,12 @@ class FineMotor:
         print(f'target: {degrees}, result: {result}')
         return result
 
-    def sweep (
+    async def sweep (
                 self,
                 start: int,
                 end: int,
                 interval: int,
-                callback: Callable[[int, int], None]
+                callback: Callable[[int, int], Awaitable[None]]
             ):
         curr = self.motor.get_aposition()
         if abs(curr) > 5:

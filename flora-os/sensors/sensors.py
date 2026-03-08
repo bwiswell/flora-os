@@ -25,7 +25,7 @@ class Sensors(Controller):
     
 
     ### METHODS ###
-    def handle_message (self, msg: Message):
+    async def handle_message (self, msg: Message):
         print(f'handling {msg.type}...')
         if msg.type == MessageType.EXIT:
             self.running = False
@@ -34,5 +34,11 @@ class Sensors(Controller):
         elif msg.type == MessageType.MOUTH:
             self.mouth.update(*Message.decode_mouth(msg))
         elif msg.type == MessageType.SCAN:
-            angles, left, right = self.sonar.scan()
+            angles, left, right = await self.sonar.scan()
             self.send(Message.sonar(angles, left, right))
+
+    async def setup (self):
+        pass
+
+    async def update (self):
+        pass
