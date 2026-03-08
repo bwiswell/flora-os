@@ -13,6 +13,9 @@ class IMU:
     GRAVITY = 9.80665
     MEASURE_NOISE = 5.0
     PROCESS_NOISE = 0.1
+    STILL_ACC_THRESHOLD = 0.15
+    STILL_DURATION = 0.5
+    STILL_ROT_THRESHOLD = math.radians(2.0)
     UNCERTAINTY = 1000.0
     UPDATE_FREQ = 0.05
     
@@ -30,6 +33,7 @@ class IMU:
         self.kfy = self._get_kf()
 
         self.last = time.time()
+        self.still_start: Optional[float] = None
 
 
     ### PROPERTIES ###
@@ -75,6 +79,20 @@ class IMU:
             a_x, a_y = self.acc_xy
             a_gx = a_x * math.cos(head) - a_y * math.sin(head)
             a_gy = a_y * math.sin(head) + a_y * math.cos(head)
+
+            acc_still = math.sqrt(a_gx**2 + a_gy**2) < IMU.STILL_ACC_THRESHOLD
+            gyro_still = abs(a_yaw) < IMU.STILL_ROT_THRESHOLD
+            
+            if acc_still and gyro_still:
+                if self.still_start is None:
+                    self.still_start = time.time()
+                elif (time.time() - self.still_start) > IMU.STILL_DURATION:
+                    self.kfx.x[1] = 0.0
+                    self.kfy.x[1] = 0.0
+                    self.kfx.P[1, 1] *= 0.1
+                    self.kfy.P[1, 1] *= 0.1
+            else:
+                self.still_start = None
 
             for kf, val in [(self.kfx, a_gx), (self.kfy, a_gy)]:
                 kf.F[0, 1] = kf.F[1, 2] = d_t
