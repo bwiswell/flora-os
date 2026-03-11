@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 import json
 
-from ..common import Expression, Mood
+from ..common import Expression, Mood, Scan
 
 
 class MessageType(Enum):
@@ -58,13 +58,10 @@ class Message:
         return data['dl'], data['dr']
     
     @classmethod
-    def decode_sonar (
-                cls,
-                msg: Message
-            ) -> tuple[list[int], list[float], list[float]]:
+    def decode_sonar (cls, msg: Message) -> Scan:
         stringified = msg.payload.decode('utf-8')
         data = json.loads(stringified)
-        return data['angles'], data['left'], data['right']
+        return Scan.load(data)
     
     @classmethod
     def exit (cls, dest: str) -> Message:
@@ -112,13 +109,8 @@ class Message:
         return Message(MessageType.SCAN, 'flora', 'sensors')
     
     @classmethod
-    def sonar (
-                cls,
-                angles: list[int],
-                left: list[float],
-                right: list[float]
-            ) -> Message:
-        data = { 'angles': angles, 'left': left, 'right': right }
+    def sonar (cls, scan: Scan) -> Message:
+        data = Scan.dump(scan)
         stringified = json.dumps(data)
         return Message(
             MessageType.SONAR,

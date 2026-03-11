@@ -4,7 +4,7 @@ import asyncio
 
 from sense_hat import SenseHat
 
-from ..common import DistanceSensor
+from ..common import DistanceSensor, Scan
 from ..controller import Controller
 from ..network import Message, MessageType, Server
 
@@ -33,7 +33,7 @@ class Flora(Controller):
 
         # Sonar tasking/event flags
         self.sonar: asyncio.Task = None
-        self.last_sonar: tuple[list[int], list[float], list[float]] = None
+        self.last_sonar: Scan = None
         self.sonar_update = asyncio.Event()
 
 

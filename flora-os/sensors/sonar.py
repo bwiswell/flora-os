@@ -1,6 +1,6 @@
 import asyncio
 
-from ..common import DistanceSensor, FineMotor
+from ..common import DistanceSensor, FineMotor, Scan
 
 from .mouth import Mouth
 
@@ -30,14 +30,14 @@ class Sonar:
 
 
     ### METHODS ###
-    async def scan (self) -> tuple[list[int], list[float], list[float]]:
-        angles: list[int] = []
+    async def scan (self) -> Scan:
+        angles: list[float] = []
         left: list[float] = []
         right: list[float] = []
 
         expression, mood = self.mouth.expression, self.mouth.mood
 
-        async def callback (idx: int, angle: int):
+        async def callback (idx: int, angle: float):
             angles.append(angle)
             l, r = await self._measure()
             left.append(l)
@@ -48,4 +48,4 @@ class Sonar:
         
         self.mouth.update(expression, mood)
 
-        return angles, left, right
+        return Scan(angles, left, right)

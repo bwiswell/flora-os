@@ -790,22 +790,23 @@ test = ["Cython", "array-api-strict (>=2.3.1)", "asv", "gmpy2", "hypothesis (>=6
 
 [[package]]
 name = "seared"
-version = "0.1.8"
+version = "0.1.9"
 description = ""
 optional = false
-python-versions = "^3.9"
+python-versions = "^3.11"
 groups = ["main"]
 files = []
 develop = false
 
 [package.dependencies]
 marshmallow = "^3.26.1"
+numpy = "^2.4.2"
 
 [package.source]
 type = "git"
 url = "https://www.github.com/bwiswell/seared.git"
 reference = "HEAD"
-resolved_reference = "0fa878137d71eb4db2910eb53d669e07cc993cb6"
+resolved_reference = "8f948a53758f16245cf74a576de4a96a0304e5ce"
 
 [[package]]
 name = "sense-hat"

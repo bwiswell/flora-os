@@ -28,7 +28,7 @@ class FineMotor:
                 apos: int,
                 was_positive: bool,
                 was_zero: bool
-            ) -> int:
+            ) -> float:
         if was_zero:
             normalized = apos
         elif apos < 0 and was_positive:
@@ -37,7 +37,7 @@ class FineMotor:
             normalized = -180 - (180 - apos)
         else:
             normalized = apos
-        return round(normalized / self.ratio) + self.bias
+        return (normalized / self.ratio) + self.bias
 
     def _to_motor_apos (self, apos: int) -> int:
         scaled = round((apos - self.bias) * self.ratio)
@@ -59,7 +59,7 @@ class FineMotor:
                 dir: Direction = 'shortest',
                 blocking: bool = True,
                 speed_limit: int = 100
-            ) -> int:
+            ) -> float:
         was_positive = degrees >= 0
         was_zero = degrees == 0
         apos = self._to_motor_apos(degrees)
@@ -80,7 +80,7 @@ class FineMotor:
                 start: int,
                 end: int,
                 interval: int,
-                callback: Callable[[int, int], Awaitable[None]]
+                callback: Callable[[int, float], Awaitable[None]]
             ):
         curr = self.motor.get_aposition()
         if abs(curr) > 5:
