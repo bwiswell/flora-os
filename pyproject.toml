@@ -11,6 +11,7 @@ gpiozero = "^2.0.1"
 sense-hat = "^2.6.0"
 filterpy = "^1.4.5"
 seared = {git = "https://www.github.com/bwiswell/seared.git"}
+scipy = "^1.17.1"
 
 [tool.poetry.dev-dependencies]
 

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import math
-
 import numpy as np
 import seared as s
 
@@ -20,18 +18,6 @@ class Pose(s.Seared):
 
 
     ### PROPERTIES ###
-    def inverse (self) -> Pose:
-        cos = math.cos(self.theta)
-        sin = math.sin(self.theta)
-        x = -cos * self.x - sin * self.y
-        y = sin * self.x - cos * self.y
-        return Pose(x, y, -self.theta)
-
-    def matrix (self) -> np.ndarray:
-        cos = math.cos(self.theta)
-        sin = math.sin(self.theta)
-        return np.array([
-            [cos, -sin, self.x],
-            [sin, cos, self.y],
-            [0.0, 0.0, 1.0]
-        ])
+    @property
+    def ndarray (self) -> np.ndarray:
+        return np.array([self.x, self.y, self.theta])

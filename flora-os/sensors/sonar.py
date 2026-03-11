@@ -21,7 +21,7 @@ class Sonar:
 
 
     ### HELPERS ###
-    async def _measure (self) -> tuple[float, float]:
+    async def _measure (self) -> tuple[int, int]:
         left, right = await asyncio.gather(
             asyncio.create_task(self.left.measure()),
             asyncio.create_task(self.right.measure())
@@ -32,8 +32,8 @@ class Sonar:
     ### METHODS ###
     async def scan (self) -> Scan:
         angles: list[float] = []
-        left: list[float] = []
-        right: list[float] = []
+        left: list[int] = []
+        right: list[int] = []
 
         expression, mood = self.mouth.expression, self.mouth.mood
 

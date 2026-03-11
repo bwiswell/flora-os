@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import math
 
 from gpiozero import DistanceSensor as GZDistanceSensor
 
@@ -20,14 +21,15 @@ class DistanceSensor:
 
     ### PROPERTIES ###
     @property
-    def distance (self) -> float:
-        return self.sensor.distance
+    def distance (self) -> int:
+        '''The current distance measurement from the sensor in cm.'''
+        return math.floor(self.sensor.distance * 100)
 
 
     ### METHODS ###
     def close (self):
         self.sensor.close()
 
-    async def measure (self) -> float:
+    async def measure (self) -> int:
         await asyncio.sleep(DistanceSensor.MEASURE_INTERVAL)
         return self.distance
