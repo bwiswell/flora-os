@@ -4,7 +4,7 @@ import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 
-from ..util import clip_radians
+from ..util import rotation_matrix, wrap_radians
 
 from .config import Config
 
@@ -14,18 +14,19 @@ def initialize_grid_map (
             scan_xy: list[np.ndarray],
             scan_odd: list[np.ndarray]
         ) -> tuple[np.ndarray, np.ndarray]:
-    grid = wh_matrix()
-    n = wh_matrix()
+    grid = np.zeros((Config.SIZE_W, Config.SIZE_H), np.float64)
+    n = np.zeros((Config.SIZE_W, Config.SIZE_H), np.float64)
     
     for i, (xy_i, odd_i) in enumerate(zip(scan_xy, scan_odd)):
-        rot = to_rotation_matrix(poses[i, 2])
+        rot = rotation_matrix(poses[i, 2])
         vec = poses[i, 0:2].T
-        si = ((rot @ xy_i) + vec).astype(np.int64)
-        temp_grid = wh_matrix()
-        temp_n = wh_matrix()
+        s_i = (rot @ xy_i) + vec
+        xy = np.floor(s_i / Config.SCALE).astype(np.int32)
+        temp_grid = np.zeros((Config.SIZE_W, Config.SIZE_H), np.float64)
+        temp_n = np.zeros((Config.SIZE_W, Config.SIZE_H), np.float64)
 
         for j in range(odd_i.shape[0]):
-            col, row, val = si[0, j], si[1, j], odd_i[j]
+            col, row, val = xy[0, j], xy[1, j], odd_i[j]
             temp_grid[row, col] += val
             temp_n[row, col] += 1
 
@@ -83,11 +84,12 @@ def poses_to_odometry (poses: np.ndarray) -> np.ndarray:
     odometry[0, :] = poses[0, :]
     for i in range(1, poses.shape[0]):
         d_xy = poses[i, 0:2] - poses[i-1, 0:2]
-        r_inv = to_rotation_matrix(poses[i-1, 2]).T
+        r_inv = rotation_matrix(poses[i-1, 2]).T
         odometry[i, 0:2] = r_inv @ d_xy
         d_theta = poses[i, 2] - poses[i-1, 2]
-        odometry[i, 2] = clip_radians(d_theta)
+        odometry[i, 2] = wrap_radians(d_theta)
     return odometry
+
 
 def preprocess_scans (
             scans: np.ndarray
@@ -121,31 +123,3 @@ def preprocess_scans (
         scan_odd.append(scan_odd_i)
 
     return scan_xy, scan_odd
-
-
-def smooth_n2 (n: np.ndarray, hh: sp.csc_matrix) -> np.ndarray:
-    rows, cols = np.nonzero(n)
-    vals = n[rows, cols]
-    n_nz = rows.shape[0]
-    id_i = np.array(list(range(n_nz)), np.int32)
-    id_j = rows * Config.SIZE_H + cols
-    np_ones = np.ones((n_nz))
-    ones = sp.csc_matrix(
-        (np_ones, (id_i, id_j)),
-        (n_nz, Config.SIZE_W * Config.SIZE_H),
-        np.float64
-    )
-    ii = ones.T @ ones + hh
-    ee = ones.T * vals
-    solve = spla.factorized(ii)
-    delta_n: np.ndarray = solve(ee)
-    return delta_n.reshape((Config.SIZE_H, Config.SIZE_W)).T
-
-
-def to_rotation_matrix (theta: float) -> np.ndarray:
-    c, s = math.cos(theta), math.sin(theta)
-    return np.array([[c, -s], [s, c]])
-
-
-def wh_matrix () -> np.ndarray:
-    return np.zeros((Config.SIZE_W, Config.SIZE_H), np.float64)
