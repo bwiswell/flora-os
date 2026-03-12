@@ -4,11 +4,13 @@ import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 
+from ..util import clip_radians
+
 from .config import Config
 
 
 def initialize_grid_map (
-            odometry: np.ndarray,
+            poses: np.ndarray,
             scan_xy: list[np.ndarray],
             scan_odd: list[np.ndarray]
         ) -> tuple[np.ndarray, np.ndarray]:
@@ -16,8 +18,8 @@ def initialize_grid_map (
     n = wh_matrix()
     
     for i, (xy_i, odd_i) in enumerate(zip(scan_xy, scan_odd)):
-        rot = to_rotation_matrix(odometry[i, 2])
-        vec = odometry[i, 0:2].T
+        rot = to_rotation_matrix(poses[i, 2])
+        vec = poses[i, 0:2].T
         si = ((rot @ xy_i) + vec).astype(np.int64)
         temp_grid = wh_matrix()
         temp_n = wh_matrix()
@@ -75,6 +77,17 @@ def initialize_hh () -> sp.csc_matrix:
     hh = j.T @ j
     return hh
 
+
+def poses_to_odometry (poses: np.ndarray) -> np.ndarray:
+    odometry = np.zeros_like(poses)
+    odometry[0, :] = poses[0, :]
+    for i in range(1, poses.shape[0]):
+        d_xy = poses[i, 0:2] - poses[i-1, 0:2]
+        r_inv = to_rotation_matrix(poses[i-1, 2]).T
+        odometry[i, 0:2] = r_inv @ d_xy
+        d_theta = poses[i, 2] - poses[i-1, 2]
+        odometry[i, 2] = clip_radians(d_theta)
+    return odometry
 
 def preprocess_scans (
             scans: np.ndarray
