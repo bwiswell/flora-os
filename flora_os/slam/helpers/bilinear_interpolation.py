@@ -13,7 +13,7 @@ def bilinear_interpolation (
     Parameters:
         grid (`ndarray`):
             A 2D `ndarray` of occupancy values with shape (`h`, `w`), where `h`
-            is the map width and `w` is the map height.
+            is the map height and `w` is the map width.
         xy (`ndarray`):
             A 2D `ndarray` of xy-coordinates with shape (`n`, 2), where `n` is
             the number of coordinate values, `x` values are stored in column 0,

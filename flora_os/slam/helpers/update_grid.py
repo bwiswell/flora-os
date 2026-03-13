@@ -16,7 +16,7 @@ def update_grid (
     Parameters:
         grid (`ndarray`):
             A 2D `ndarray` of occupancy values with shape (`h`, `w`), where `h`
-            is the map width and `w` is the map height.
+            is the map height and `w` is the map width.
         poses (`ndarray`):
             A 2D `ndarray` of poses with shape (`n`, 3), where `n` is the
             number of poses, `x` values are stored in column 0, `y` values are
@@ -26,9 +26,13 @@ def update_grid (
             (`n`, 1), where `n` is equal to `grid.size`.
         delta_p (`ndarray`):
             A 2D `ndarray` of pose gradient deltas with shape (`n`, 1), where
-            `n` is equal to `poses.size`.
+            `n` is equal to `poses.size` - 3.
     '''
+
+    # Apply gradient delta update to the occupancy map
     delta_d_mat = delta_d.reshape(grid.shape, order='F')
     grid += delta_d_mat
+
+    # Apply gradient delta update to the pose array
     delta_p_mat = delta_p.reshape((-1, 3), order='F')
     poses[1:, :] += delta_p_mat
