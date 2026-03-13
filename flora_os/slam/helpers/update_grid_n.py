@@ -53,8 +53,12 @@ def update_grid_n (
     # Scale and round coordinates
     xy = np.round(xy / Config.SCALE).astype(np.int32)
 
+    # Create a validation mask to ensure in-bounds 'hits'
+    mask = (xy[0] >= 0) and (xy[0] < Config.SIZE_I) and \
+            (xy[1] >= 0) and (xy[1] < Config.SIZE_J)
+
     # Create histogram of 'hits' in n
     n = np.zeros((Config.SIZE_I, Config.SIZE_J), np.float64)
-    np.add.at(n, (xy[0], xy[1]), 1)
+    np.add.at(n, (xy[1, mask], xy[0, mask]), 1)
 
     return n
