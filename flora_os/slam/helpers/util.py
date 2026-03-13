@@ -51,7 +51,7 @@ def rotation_matrix (theta: float) -> npt.NDArray[np.float64]:
 
 def wrap_radians (theta: float) -> float:
     '''
-    Returns an equivalent angle (in radians) to `val` in the range
+    Returns an equivalent angle to `theta` (in radians) in the range
     (-`pi`, `pi`).
 
     Parameters:
@@ -60,11 +60,12 @@ def wrap_radians (theta: float) -> float:
 
     Returns:
         theta_prime (`float`):
-            An equivalent angle (in radians) in the range (-`pi`, `pi`).
+            An equivalent angle to `theta` (in radians) in the range
+            (-`pi`, `pi`).
     '''
-    r = theta
-    while r < -math.pi:
-        r += 2 * math.pi
-    while r > math.pi:
-        r -= 2 * math.pi
-    return r
+    theta_prime = theta
+    while theta_prime < -math.pi:
+        theta_prime += 2 * math.pi
+    while theta_prime > math.pi:
+        theta_prime -= 2 * math.pi
+    return theta_prime

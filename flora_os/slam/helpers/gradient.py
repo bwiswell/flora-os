@@ -1,7 +1,11 @@
 import numpy as np
+import numpy.typing as npt
 
 
-def gradient (grid: np.ndarray, h: float) -> tuple[np.ndarray, np.ndarray]:
+def gradient (
+            grid: npt.NDArray[np.float64],
+            h: float
+        ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     '''
     Returns the x and y gradients of the occupany map `grid`, where `h` is the
     side length of each square 'cell' in the map.

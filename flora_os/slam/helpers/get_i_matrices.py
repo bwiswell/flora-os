@@ -1,10 +1,11 @@
 import numpy as np
+import numpy.typing as npt
 import scipy.sparse as sp
 
 
 def get_i_matrices (
-            odometry: np.ndarray,
-            err_s: np.ndarray
+            odometry: npt.NDArray[np.float64],
+            err_s: npt.NDArray[np.float64]
         ) -> tuple[sp.csc_matrix, sp.csc_matrix]:
     '''
     Returns sparse identity matrices derived from the shapes of the incremental
