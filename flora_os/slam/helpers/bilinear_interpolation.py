@@ -15,9 +15,9 @@ def bilinear_interpolation (
             A 2D `ndarray` of occupancy values with shape (`h`, `w`), where `h`
             is the map height and `w` is the map width.
         xy (`ndarray`):
-            A 2D `ndarray` of xy-coordinates with shape (`n`, 2), where `n` is
-            the number of coordinate values, `x` values are stored in column 0,
-            and `y` values are stored in column 1.
+            A 2D `ndarray` of `xy`-coordinates with shape (`n`, 2), where `n`
+            is the number of coordinate values, `x` values are stored in column
+            0, and `y` values are stored in column 1.
 
     Returns:
         interpolated (`ndarray`):

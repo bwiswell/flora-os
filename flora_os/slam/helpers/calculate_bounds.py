@@ -60,7 +60,7 @@ def calculate_bounds (
         np.stack(
             # TODO: maybe 'ij' indexing?
             np.meshgrid(id_row_t + i_offsets, id_col_l + j_offsets),
-            axis=-1
+            axis = -1
         ).reshape(-1, 2),
         axis = 0
     )
