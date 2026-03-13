@@ -36,14 +36,16 @@ def diff_jacobian (
     err_s, err_o = [], []
 
     for i in range(n_poses):
-        theta = poses[i, 2]
-        r_i = rotation_matrix(theta)
-
-        scan_xy_i = scan_xy[i].reshape(2, -1, 'F')
+        scan_xy_i = scan_xy[i]
         scan_odd_i = scan_odd[i]
 
-        xy = ((r_i @ scan_xy_i) + poses[i, :2]) / Config.SCALE
-        
+        theta = poses[i, 2]
+        r_i = rotation_matrix(theta)
+        scan_xy_i_mat = scan_xy_i.reshape((2, -1), order='F')
+        pose_vec = poses[i, :2].T
+        s_i = (r_i @ scan_xy_i_mat) + pose_vec
+        xy = (s_i / Config.SCALE).round().astype(np.int32)
+
         grid_inter = bilinear_interpolation(grid, xy.T)
         n_inter = bilinear_interpolation(n, xy.T)
 
@@ -54,7 +56,7 @@ def diff_jacobian (
 
         d_m_d_xy = np.vstack([g_u_inter / n_inter, g_v_inter / n_inter])
         d_r_i = d_rotation_matrix(theta)
-        d_xy_d_r_i = (d_r_i.T @ scan_xy_i) / Config.SCALE
+        d_xy_d_r_i = (d_r_i.T @ scan_xy_i_mat) / Config.SCALE
         d_m_d_r_i = np.sum(d_m_d_xy * d_xy_d_r_i, axis=0)
         d_m_d_t = d_m_d_xy / Config.SCALE
         d_m_d_p = np.vstack([d_m_d_t, d_m_d_r_i[None, :]])

@@ -9,6 +9,8 @@ from .helpers import (
     delta,
     diff_jacobian,
     initialize_grid_map,
+    select_const_grid,
+    select_initial_grid,
     select_scan,
     smooth_n2,
     update_grid,
@@ -31,13 +33,10 @@ class SLAMSolver:
                 low_scan_odd: list[np.ndarray],
                 hh: sp.csc_matrix
             ):
-        s_w = Config.SIZE_W * Config.DOWN_RATE
-        s_h = Config.SIZE_H * Config.DOWN_RATE
-
         weighted_hh = hh * Config.MAP_SMOOTHING_WEIGHT_FIRST
 
-        sel_grid = np.ndarray((s_w, s_h), np.float64)
-        sel_n = np.ndarray((s_w, s_h), np.float64)
+        sel_grid: np.ndarray = None
+        sel_n: np.ndarray = None
         sel_scan_xy: list[np.ndarray] = None
         sel_scan_odd: list[np.ndarray] = None
         sel_id: np.ndarray = None
@@ -94,3 +93,12 @@ class SLAMSolver:
                         scan_odd,
                         sel_id
                     )
+                    sel_grid, sel_n = select_initial_grid(
+                        poses,
+                        sel_scan_xy,
+                        sel_scan_odd
+                    )
+                    sel_weighted_hh = select_const_grid(
+                        sel_id_var
+                    ) * Config.MAP_SMOOTHING_WEIGHT_SECOND
+                

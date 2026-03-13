@@ -2,6 +2,8 @@ from .delta import delta
 from .diff_jacobian import diff_jacobian
 from .calculate_bounds import calculate_bounds
 from .initialize_grid_map import initialize_grid_map
+from .select_const_grid import select_const_grid
+from .select_initial_grid import select_initial_grid
 from .select_scan import select_scan
 from .smooth_n2 import smooth_n2
 from .update_grid import update_grid
