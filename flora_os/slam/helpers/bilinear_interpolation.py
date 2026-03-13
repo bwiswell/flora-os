@@ -1,9 +1,11 @@
-import math
-
 import numpy as np
+import numpy.typing as npt
 
 
-def bilinear_interpolation (grid: np.ndarray, xy: np.ndarray) -> np.ndarray:
+def bilinear_interpolation (
+            grid: np.ndarray,
+            xy: npt.NDArray[np.float64]
+        ) -> npt.NDArray[np.float64]:
     '''
     Returns an `ndarray` of interpolated occupancy values computed for
     xy-coordinates found in `xy` and the current occupancy map `grid`.

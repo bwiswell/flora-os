@@ -71,7 +71,7 @@ class SLAMSolver:
                     weighted_hh
                 )
 
-                update_grid(grid, poses, delta_p, delta_d)
+                update_grid(grid, poses, delta_d, delta_p)
                 n[:, :] = update_grid_n(poses, low_scan_xy)[:, :]
                 if mean_delta < Config.MIN_MEAN_DELTA_FIRST:
                     Config.DOWN_ITERS = iters

@@ -1,9 +1,10 @@
 import math
 
 import numpy as np
+import numpy.typing as npt
 
 
-def d_rotation_matrix (theta: float) -> np.ndarray:
+def d_rotation_matrix (theta: float) -> npt.NDArray[np.float64]:
     '''
     Returns the 2D derivative of the standard rotation matrix for the given
     angle `theta` (in radians).
@@ -26,7 +27,7 @@ def d_rotation_matrix (theta: float) -> np.ndarray:
     return np.array([[-s, c], [-c, -s]])
 
 
-def rotation_matrix (theta: float) -> np.ndarray:
+def rotation_matrix (theta: float) -> npt.NDArray[np.float64]:
     '''
     Returns the 2D rotation matrix for the given angle `theta` (in radians).
 
