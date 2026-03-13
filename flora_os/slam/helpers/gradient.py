@@ -19,8 +19,8 @@ def gradient (grid: np.ndarray, h: float) -> tuple[np.ndarray, np.ndarray]:
             `grid`, each with shape (`h`, `w`), where `h` is the map height and
             `w` is the map width.
 
-            - g_x (`ndarray`): Gradient values along the x-axis. 
-            - g_y (`ndarray`): Gradient values along the y-axis. 
+            - **g_x** (`ndarray`): Gradient values along the x-axis. 
+            - **g_y** (`ndarray`): Gradient values along the y-axis. 
     '''
 
     # Initialize output ndarrays for x and y gradients

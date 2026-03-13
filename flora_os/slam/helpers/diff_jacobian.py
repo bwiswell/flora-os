@@ -150,6 +150,6 @@ def diff_jacobian (
         shape=(3 * (n_poses - 1), 3 * n_poses)
     ).tocsc()
 
-    i_s, i_o = get_i_matrices(odometry, err_s)
+    i_o, i_s = get_i_matrices(odometry, err_s)
 
     return jp, jd, jo, i_s, i_o, err_s, err_o
