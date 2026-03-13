@@ -7,8 +7,8 @@ def gradient (
             h: float
         ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     '''
-    Returns the x and y gradients of the occupany map `grid`, where `h` is the
-    side length of each square 'cell' in the map.
+    Returns the `x`-axis and `y`-axis gradients of the occupany map `grid`,
+    where `h` is the side length of each square 'cell' in the map.
 
     Parameters:
         grid (`ndarray`):
@@ -19,12 +19,12 @@ def gradient (
 
     Returns:
         gradients (`tuple[ndarray]`):
-            A `tuple` containing two `ndarray` gradient matrices derived from
-            `grid`, each with shape (`h`, `w`), where `h` is the map height and
-            `w` is the map width.
+            A `tuple` containing two 2D `ndarray` gradient matrices derived
+            from `grid`, each with shape (`h`, `w`), where `h` is the map
+            height and `w` is the map width.
 
-            - **g_x** (`ndarray`): Gradient values along the x-axis. 
-            - **g_y** (`ndarray`): Gradient values along the y-axis. 
+            - **g_x** (`ndarray`): Gradient values along the `x`-axis. 
+            - **g_y** (`ndarray`): Gradient values along the `y`-axis. 
     '''
 
     # Initialize output ndarrays for x and y gradients
