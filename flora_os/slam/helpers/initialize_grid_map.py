@@ -2,7 +2,7 @@ import numpy as np
 
 from ..config import Config
 
-from .common import rotation_matrix
+from .util import rotation_matrix
 
 
 def initialize_grid_map (
@@ -15,7 +15,7 @@ def initialize_grid_map (
     
     for i, (xy_i, odd_i) in enumerate(zip(scan_xy, scan_odd)):
         rot = rotation_matrix(poses[i, 2])
-        vec = poses[i, 0:2].T
+        vec = poses[i, :2].T
         s_i = (rot @ xy_i) + vec
         xy = np.floor(s_i / Config.SCALE).astype(np.int32)
         temp_grid = np.zeros((Config.SIZE_W, Config.SIZE_H), np.float64)

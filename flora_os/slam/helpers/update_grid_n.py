@@ -2,7 +2,7 @@ import numpy as np
 
 from ..config import Config
 
-from .common import rotation_matrix
+from .util import rotation_matrix
 
 
 def update_grid_n (
@@ -14,7 +14,7 @@ def update_grid_n (
     for i in range(n_poses):
         r_i = rotation_matrix(poses[i, 2])
         scan_xy_i = scan_xy[i].reshape((2, -1), order='F')
-        pose_vec = poses[i, :].T
+        pose_vec = poses[i, :2].T
         s_i = (r_i @ scan_xy_i) + pose_vec
         xy = (s_i / Config.SCALE).round().astype(np.int32)
         temp_n = np.zeros((Config.SIZE_W, Config.SIZE_H), np.float64)

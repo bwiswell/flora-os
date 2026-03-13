@@ -4,13 +4,12 @@ import scipy.sparse as sp
 from ..config import Config
 
 from .bilinear_interpolation import bilinear_interpolation
-from .common import d_rotation_matrix, rotation_matrix, wrap_radians
+from .util import d_rotation_matrix, rotation_matrix, wrap_radians
 from .get_i_matrices import get_i_matrices
 from .gradient import gradient
 
 
 def diff_jacobian (
-            cls,
             grid: np.ndarray,
             n: np.ndarray,
             poses: np.ndarray,
