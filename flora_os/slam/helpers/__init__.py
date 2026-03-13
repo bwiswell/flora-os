@@ -6,5 +6,6 @@ from .select_const_grid import select_const_grid
 from .select_initial_grid import select_initial_grid
 from .select_scan import select_scan
 from .smooth_n2 import smooth_n2
+from .smooth_select_n2 import smooth_select_n2
 from .update_grid import update_grid
 from .update_grid_n import update_grid_n

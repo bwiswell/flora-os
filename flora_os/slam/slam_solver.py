@@ -13,6 +13,7 @@ from .helpers import (
     select_initial_grid,
     select_scan,
     smooth_n2,
+    smooth_select_n2,
     update_grid,
     update_grid_n
 )
@@ -81,7 +82,7 @@ class SLAMSolver:
                     Config.SIZE_W *= Config.DOWN_RATE
                     Config.SIZE_H *= Config.DOWN_RATE
                     Config.SCALE /= Config.DOWN_RATE
-                    high_grid, high_n = initialize_grid_map(
+                    high_grid, _ = initialize_grid_map(
                         poses,
                         scan_xy,
                         scan_odd
@@ -101,4 +102,8 @@ class SLAMSolver:
                     sel_weighted_hh = select_const_grid(
                         sel_id_var
                     ) * Config.MAP_SMOOTHING_WEIGHT_SECOND
-                
+                sel_n[:, :] = smooth_select_n2(
+                    sel_n,
+                    sel_weighted_hh,
+                    sel_id_var
+                )
