@@ -6,8 +6,9 @@ from ..config import Config
 
 
 def calculate_bounds (
-            grid: npt.NDArray[np.float64]
-        ) -> tuple[npt.NDArray[np.int_], npt.NDArray[np.int_]]:
+            grid: npt.NDArray[np.float64],
+            config: Config
+        ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
     '''
     Returns unique selection and variation indices of the bounds of `grid` by
     applying a 2D convolution.
@@ -16,6 +17,8 @@ def calculate_bounds (
         grid (`ndarray`):
             A 2D `ndarray` of occupancy values with shape (`h`, `w`), where `h`
             is the map height and `w` is the map width.
+        config (`Config`):
+            The configuration object to obtain setting selection values from.
 
     Returns:
         uniq_indices (`tuple[ndarray, ndarray]`):
@@ -38,12 +41,12 @@ def calculate_bounds (
     bound_mask = sn.binary_dilation(explored) ^ explored
 
     # Find unique selection indices
-    sel_n_cell = int(round(Config.SEL_DISTANCE / Config.SCALE))
-    sel_mask = sn.binary_dilation(bound_mask, iterations=sel_n_cell)
-    uniq_sel_ids = np.argwhere(sel_mask)
+    sel_mask = sn.binary_dilation(bound_mask, iterations=config.sel_n_cell)
+    sel_mask |= explored
+    uniq_sel_ids = np.argwhere(sel_mask).astype(np.int32)
 
     # Find variation indices
-    var_mask = sn.binary_dilation(sel_mask, iterations=2)
-    uniq_var_ids = np.argwhere(var_mask)
+    var_mask = sn.binary_dilation(sel_mask, iterations=config.var_mask_iters)
+    uniq_var_ids = np.argwhere(var_mask).astype(np.int32)
 
     return uniq_sel_ids, uniq_var_ids

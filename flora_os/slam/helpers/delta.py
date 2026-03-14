@@ -14,7 +14,8 @@ def delta (
             err_s: npt.NDArray[np.float64],
             err_o: npt.NDArray[np.float64],
             i_o: sp.csc_matrix,
-            weighted_hh: sp.csc_matrix
+            weighted_hh: sp.csc_matrix,
+            config: Config
         ) -> tuple[
             npt.NDArray[np.float64],
             npt.NDArray[np.float64],
@@ -56,6 +57,8 @@ def delta (
             A `csc_matrix` containing a weighted Hessian with shape
             (`w` * `h`, `w` * `h`), where `w` is the map width and `h` is the
             map height.
+        config (`Config`):
+            The configuration object to obtain setting selection values from.
 
     Returns:
         deltas (`tuple[ndarray, ndarray, float, float]`):
@@ -97,8 +100,8 @@ def delta (
     m_inv = sp.diags(1.0 / diagonal)
 
     # Solve the system with the Conjugate Gradient method
-    max_iter = min(200, int(np.sqrt(i_i.shape[0])))
-    delta, _ = spl.cg(i_i, e_e, m=m_inv, tol=0.005, maxiter=max_iter)
+    params = config.delta_solver_params(i_i.shape[0])
+    delta, _ = spl.cg(i_i, e_e, m=m_inv, **params)
 
     # Split results
     num_p = jp_s.shape[1]

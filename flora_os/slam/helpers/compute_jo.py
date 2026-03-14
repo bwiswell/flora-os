@@ -63,25 +63,11 @@ def compute_jo (
     jo_v = np.stack(
         [
             np.stack(
-                [
-                    -ct,
-                    -st,
-                    -st * dx + ct * dy,
-                    ct,
-                    st,
-                    np.zeros(n_trans)
-                ],
+                [-ct, -st, -st * dx + ct * dy, ct, st, np.zeros(n_trans)],
                 axis = 1
             ),
             np.stack(
-                [
-                    st,
-                    -ct,
-                    -ct * dx - st * dy,
-                    -st,
-                    ct,
-                    np.zeros(n_trans)
-                ],
+                [st, -ct, -ct * dx - st * dy, -st, ct, np.zeros(n_trans)],
                 axis = 1
             ),
             np.stack(

@@ -13,4 +13,4 @@ This module uses or takes inspiration from the following additional sources:
     An incredible how-to for GraphSLAM techniques used for guidance.
 """
 
-from .slam_builder import SLAMBuilder
+from .slam_solver import SLAMSolver
