@@ -4,19 +4,20 @@ import numpy.typing as npt
 from ..config import Config
 
 
-def update_grid_n (
-            grid: npt.NDArray[np.float64],
+def update_select_n (
+            sel_n: npt.NDArray[np.float64],
             poses: npt.NDArray[np.float64],
             scans: npt.NDArray[np.float64]
-        ) -> npt.NDArray[np.float64]:
+        ):
     '''
-    Returns a 2D `ndarray` of occupancy counts `n` according to the scan data
-    `scans` collected at each pose in `poses`.
+    Updates the 2D `ndarray` of occupancy counts `sel_n` in-place according to
+    the scan data `scans` collected at each pose in `poses`.
 
     Parameters:
-        grid (`ndarray`):
-            A 2D `ndarray` of occupancy values with shape (`h`, `w`), where `h`
-            is the map height and `w` is the map width.
+        sel_n (`ndarray`):
+            A 2D `ndarray` occupancy 'hit' values with shape (`h`, `w`), where
+            `h` is the height of the occupancy map and `w` is the width of the
+            occupancy map.
         poses (`ndarray`):
             A 2D `ndarray` of poses with shape (`n`, 3), where `n` is the
             number of poses, `x` values are stored in column 0, `y` values are
@@ -26,15 +27,9 @@ def update_grid_n (
             is the number of poses, `m` is the number of beams per pose, local
             `x` values are stored in column 0, local `y` values are stored in
             column 1, and occupancy values are stored in column 2.
-
-    Returns:
-        n (`ndarray`):
-            A 2D `ndarray` occupancy 'hit' values with shape (`h`, `w`), where
-            `h` is the height of the occupancy map and `w` is the width of the
-            occupancy map.
     '''
 
-    h, w = grid.shape
+    h, w = sel_n.shape
     n_poses = poses.shape[0]
 
     # Reshape scan data
@@ -50,19 +45,33 @@ def update_grid_n (
     gx = (lx * cos_t - ly * sin_t + poses[pose_idxs, 0]) / Config.SCALE
     gy = (lx * sin_t + ly * cos_t + poses[pose_idxs, 1]) / Config.SCALE
 
-    # Clip and cast scan data
-    rows = np.rint(gy).astype(np.int32)
-    cols = np.rint(gx).astype(np.int32)
+    # Find cell corners
+    r_a = np.floor(gy).astype(np.int32)
+    c_a = np.floor(gx).astype(np.int32)
+    r_b, c_b = r_a + 1, c_a + 1
+
+    # Compute fractional offsets
+    dr = gy - r_a
+    dc = gx - c_a
+
+    # Compute cell corner weights
+    w_a_a = (1 - dr) * (1 - dc)
+    w_a_b = (1 - dr) * dc
+    w_b_a = dr * (1 - dc)
+    w_b_b = dr * dc
+
+    # Concatenate corner indices and weights
+    rows = np.concatenate([r_a, r_a, r_b, r_b])
+    cols = np.concatenate([c_a, c_b, c_a, c_b])
+    weights = np.concatenate([w_a_a, w_a_b, w_b_a, w_b_b])
 
     # Mask out-of-bounds points
-    mask = (rows >= 0) and (rows < h) and (cols >= 0) and (cols < w)
-    valid_rows = rows[mask]
-    valid_cols = cols[mask]
+    mask = (rows >= 0) & (rows < h) & (cols >= 0) & (cols < w)
 
-    # Convert coordinates to indices
-    indices = valid_rows * w + valid_cols
+    # Flatten indices
+    flat_idxs = rows[mask] * w + cols[mask]
 
-    # Create n
-    n = np.bincount(indices, minlength=h*w)
+    # Count hits
+    counts = np.bincount(flat_idxs, weights=weights[mask], minlength=h*w)
 
-    return n
+    n += counts.reshape(h, w)

@@ -1,17 +1,23 @@
 import numpy as np
+import numpy.typing as npt
 
 from ..config import Config
 
 
-def initialize_grid_map (
-            poses: np.ndarray,
-            scans: np.ndarray
-        ) -> tuple[np.ndarray, np.ndarray]:
+def update_n (
+            n: npt.NDArray[np.float64],
+            poses: npt.NDArray[np.float64],
+            scans: npt.NDArray[np.float64]
+        ) -> npt.NDArray[np.float64]:
     '''
-    Returns a `tuple` of `ndarray` containing the initialized occupancy map and
-    occupancy 'hit' count matrix `n`.
+    Returns a 2D `ndarray` of occupancy counts `n` according to the scan data
+    `scans` collected at each pose in `poses`.
 
     Parameters:
+        n (`ndarray`):
+            A 2D `ndarray` occupancy 'hit' values with shape (`h`, `w`), where
+            `h` is the height of the occupancy map and `w` is the width of the
+            occupancy map.
         poses (`ndarray`):
             A 2D `ndarray` of poses with shape (`n`, 3), where `n` is the
             number of poses, `x` values are stored in column 0, `y` values are
@@ -23,22 +29,18 @@ def initialize_grid_map (
             column 1, and occupancy values are stored in column 2.
 
     Returns:
-        grid_data (`tuple[ndarray, ndarray]`):
-            A `tuple` of two 2D `ndarray` containing the initialized occupancy
-            map and occupancy 'hit' count matrix `n`, each with shape
-            (`h`, `w`), where `h` is the map height and `w` is the map width.
-
-            - **grid** (`ndarray`): The initial occupancy map.
-            - **n** (`ndarray`): The initial occupancy 'hit' count matrix.
+        n (`ndarray`):
+            A 2D `ndarray` occupancy 'hit' values with shape (`h`, `w`), where
+            `h` is the height of the occupancy map and `w` is the width of the
+            occupancy map.
     '''
 
-    h, w = Config.SIZE_I, Config.SIZE_J
+    h, w = n.shape
     n_poses = poses.shape[0]
 
     # Reshape scan data
     glob_scans = scans.reshape(-1, 3)
     lx, ly = glob_scans[:, 0], glob_scans[:, 1]
-    glob_obs = glob_scans[:, 2]
 
     # Get cos(theta) and sin(theta) for all poses for each beam
     pose_idxs = np.repeat(np.arange(n_poses), Config.N_BEAMS)
@@ -57,13 +59,11 @@ def initialize_grid_map (
     mask = (rows >= 0) & (rows < h) & (cols >= 0) & (cols < w)
     valid_rows = rows[mask]
     valid_cols = cols[mask]
-    valid_obs = glob_obs[mask]
 
     # Convert coordinates to indices
     indices = valid_rows * w + valid_cols
 
-    # Create grid and n
-    grid = np.bincount(indices, weights=valid_obs, minlength=h*w)
-    n = np.bincount(indices, minlength=h*w)
+    # Create n
+    n = np.bincount(indices, minlength=h*w).astype(np.float64)
 
-    return grid.reshape(h, w), n.reshape(h, w).astype(np.float64)
+    return n

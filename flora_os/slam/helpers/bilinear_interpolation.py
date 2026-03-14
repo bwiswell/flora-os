@@ -45,6 +45,8 @@ def bilinear_interpolation (
             out-of-bounds) coordinates from `xy`.
     '''
 
+    h, w = grid.shape
+
     # Get raw x and y coordinates
     x, y = xy[:, 0], xy[:, 1]
 
@@ -55,8 +57,7 @@ def bilinear_interpolation (
     y_b = y_a + 1
 
     # Mask to detect coordinates that are out-of-bounds
-    mask = (x_a >= 0) & (x_b < grid.shape[1]) & \
-            (y_a >= 0) & (y_b < grid.shape[0])
+    mask = (x_a >= 0) & (x_b < w) & (y_a >= 0) & (y_b < h)
     
     # Fractional offsets for valid coordinates
     dx = x[mask] - x_a[mask]

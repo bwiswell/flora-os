@@ -7,4 +7,5 @@ from .select_initial_grid import select_initial_grid
 from .select_scan import select_scan
 from .smooth_n2 import smooth_n2
 from .update_grid import update_grid
-from .update_grid_n import update_grid_n
+from .update_n import update_n
+from .update_select_n import update_select_n
