@@ -30,9 +30,9 @@ def update_grid (
     '''
 
     # Apply gradient delta update to the occupancy map
-    delta_d_mat = delta_d.reshape(grid.shape, order='F')
+    delta_d_mat = delta_d.reshape(grid.shape)
     grid += delta_d_mat
 
     # Apply gradient delta update to the pose array
-    delta_p_mat = delta_p.reshape((-1, 3), order='F')
+    delta_p_mat = delta_p.reshape((-1, 3))
     poses[1:, :] += delta_p_mat

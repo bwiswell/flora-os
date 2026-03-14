@@ -41,16 +41,17 @@ def delta (
             of `err_s`), `w` is the map width, and `h` is the map height.
         jo (`csc_matrix`):
             A `csc_matrix` containing the observation Jacobian with shape
-            (`n` - 1, 3 * `n`), where `n` is the number of poses.
+            (3 * `n`, 3 * `n`), where `n` is the number of poses.
         err_s (`ndarray`):
             A 1D `ndarray` of sensor error values with shape (`m`), where `m`
             is the number of sensor measurements.
         err_o (`ndarray`):
-            A 1D `ndarray` of odometry error values with shape (`n` - 1), where
-            `n` is the number of poses.
+            A 1D `ndarray` of odometry error values with shape (3 * (`n` - 1)),
+            where `n` is the number of poses.
         i_o (`csc_matrix`):
             A `csc_matrix` containing information/weight data for observations
-            with shape (`n` - 1, `n` - 1), where `n` is the number of poses.
+            with shape (3 * (`n` - 1), 3 * (`n` - 1)), where `n` is the number
+            of poses.
         weighted_hh (`csc_matrix`):
             A `csc_matrix` containing a weighted Hessian with shape
             (`w` * `h`, `w` * `h`), where `w` is the map width and `h` is the
@@ -66,7 +67,7 @@ def delta (
             parameter deltas with shape (`w` * `h`), where `w` is the map width
             and `h` is the map height.
             - **delta_p** (`ndarray`): A 1D `ndarray` of pose parameter deltas
-            with shape (3 * `n` - 3), where `n` is the number of poses.
+            with shape (3 * (`n` - 1)), where `n` is the number of poses.
             - **mean_delta** (`float`): The mean delta across all parameters.
             - **mean_delta_p** (`float`): The mean delta across all pose
             parameters.

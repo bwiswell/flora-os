@@ -27,7 +27,7 @@ def get_i_matrices (
             for weighting error terms for optimization of the gradient descent.
 
             - **i_o** (`csc_matrix`): The sparse identity matrix for `odometry`
-            with shape (3 * (`n`) - 1, 3 * (`n`) - 1), where `n` is the number
+            with shape (3 * (`n` - 1), 3 * (`n` - 1)), where `n` is the number
             of rows in `odometry`.
             - **i_s** (`csc_matrix`): The sparse identity matrix for `err_s`
             with shape (`m`, `m`), where `m` is the number of values in
