@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.typing as npt
-import scipy.signal as ss
+import scipy.ndimage as sn
 
 from ..config import Config
 
@@ -33,43 +33,17 @@ def calculate_bounds (
             and `j` indices are stored in column 1.
     '''
 
-    # Apply exponential transform and clip values
-    exp_grid = np.clip(np.exp(grid), 0.0, 1.0)
+    # Find edges
+    explored = (grid != 0.0)
+    bound_mask = sn.binary_dilation(explored) ^ explored
 
-    # Create the kernel and perform a 2D convolution
-    r = (Config.SEL_KERNEL_SIZE - 1) // 2
-    kernel = np.ones(
-        (Config.SEL_KERNEL_SIZE, Config.SEL_KERNEL_SIZE),
-        np.float64
-    ) / (Config.SEL_KERNEL_SIZE**2)
-    conv = ss.convolve2d(exp_grid, kernel, mode='same')
-    
-    # Find edge cells (convolution value between 0.0 and 1.0)
-    edge_mask = (conv > 0.0) & (conv < 1.0)
-    id_all = np.argwhere(edge_mask)
+    # Find unique selection indices
+    sel_n_cell = int(round(Config.SEL_DISTANCE / Config.SCALE))
+    sel_mask = sn.binary_dilation(bound_mask, iterations=sel_n_cell)
+    uniq_sel_ids = np.argwhere(sel_mask)
 
-    # Compute cell selection indices
-    sel_n_cell = round(Config.SEL_DISTANCE / Config.SCALE)
-    id_row_t = id_all[:, 0][:, None] - sel_n_cell
-    id_col_l = id_all[:, 1][:, None] - sel_n_cell
-
-    # Generate all selection indices
-    i_offsets = np.arange(2 * sel_n_cell + 1)
-    j_offsets = np.arange(2 * sel_n_cell + 1)
-    uniq_sel_ids = np.unique(
-        np.stack(
-            # TODO: maybe 'ij' indexing?
-            np.meshgrid(id_row_t + i_offsets, id_col_l + j_offsets),
-            axis = -1
-        ).reshape(-1, 2),
-        axis = 0
-    )
-
-    # Compute variation indices
-    var_offsets = np.mgrid[-2:3, -2:3].T.reshape(-1, 2)
-    uniq_var_ids = np.unique(
-        (uniq_sel_ids[:, None, :] + var_offsets).reshape(-1, 2),
-        axis=0
-    )
+    # Find variation indices
+    var_mask = sn.binary_dilation(sel_mask, iterations=2)
+    uniq_var_ids = np.argwhere(var_mask)
 
     return uniq_sel_ids, uniq_var_ids

@@ -4,9 +4,7 @@ import scipy.sparse as sp
 from ..config import Config
 
 from .bilinear_interpolation import bilinear_interpolation
-from .util import d_rotation_matrix, rotation_matrix, wrap_radians
-from .get_i_matrices import get_i_matrices
-from .gradient import gradient
+from .compute_jo import compute_jo
 
 
 def diff_jacobian (
@@ -14,142 +12,121 @@ def diff_jacobian (
             n: np.ndarray,
             poses: np.ndarray,
             odometry: np.ndarray,
-            scan_xy: list[np.ndarray],
-            scan_odd: list[np.ndarray]
+            scans: np.ndarray
         ) -> tuple[
-            sp.csc_matrix,
-            sp.csc_matrix,
             sp.csc_matrix,
             sp.csc_matrix,
             sp.csc_matrix,
             np.ndarray,
             np.ndarray
         ]:
+    '''
+    Returns `tuple` of 3 `csc_matrix` and 2 `ndarray`, containing the pose
+    Jacobian, grid (disparity) Jacobian, odometry Jacobian, sensor residual
+    errors, and odometry residual errors respectively.
+
+    Parameters:
+        grid (`ndarray`):
+            A 2D `ndarray` of occupancy values with shape (`h`, `w`), where `h`
+            is the map height and `w` is the map width.
+        n (`ndarray`):
+            A 2D `ndarray` of occupancy 'hit' values with shape (`h`, `w`),
+            where `h` is the height of the occupancy map and `w` is the width
+            of the occupancy map.
+        poses (`ndarray`):
+            A 2D `ndarray` of poses with shape (`n`, 3), where `n` is the
+            number of poses, `x` values are stored in column 0, `y` values are
+            stored in column 1, and `theta` values are stored in column 2.
+        odometry (`ndarray`):
+            A 2D `ndarray` of incremental odometry data with shape
+            (`n`, 3), where `n` is the number of poses, `d_x` values are stored
+            in column 0, `d_y` values are stored in column 1, and `d_theta`
+            values are stored in column 2.
+        scans (`ndarray`):
+            A 3D `ndarray` of sensor data with shape (`n`, `m`, 3), where `n`
+            is the number of poses, `m` is the number of beams per pose, local
+            `x` values are stored in column 0, local `y` values are stored in
+            column 1, and occupancy values are stored in column 2.
+
+    Returns:
+        js (`tuple[csc_matrix, csc_matrix, csc_matrx, ndarray, ndarray`]):
+            A `tuple` of 3 `csc_matrix` and 2 `ndarray`, containing the pose
+            Jacobian, grid (disparity) Jacobian, odometry Jacobian, sensor
+            residual errors, and odometry residual errors respectively.
+
+            - **jp** (`csc_matrix`): A `csc_matrix` containing the pose
+            Jacobian with shape (`l`, 3 * `n`), where `l` is the number of
+            valid (in-bounds) sensor measurements and `n` is the number poses.
+            - **jd** (`csc_matrix`): A `csc_matrix` containing the grid
+            (disparity) Jacobian with shape (`l`, `w` * `h`), where `l` is the
+            number of valid (in-bounds) sensor measurements, `w` is the map
+            width, and `h` is the map height.
+            - **jo** (`csc_matrix`): A `csc_matrix` containing the odometry
+            Jacobian with shape (3 * (`n` - 1), 3 * `n`)
+    '''
+    
     n_poses = poses.shape[0]
-    h = 1.0
-    g_v, g_u = gradient(grid, h)
-    n_pts = 0
 
-    jp_id_i, jp_id_j, jp_val = [], [], []
-    jd_id_i, jd_id_j, jd_val = [], [], []
-    jo_id_i, jo_id_j, jo_val = [], [], []
-    err_s, err_o = [], []
+    # Compute spatial gradients
+    gv, gu = np.gradient(grid, Config.SCALE)
 
-    for i in range(n_poses):
-        scan_xy_i = scan_xy[i]
-        scan_odd_i = scan_odd[i]
+    # Reshape scan data
+    glob_scans = scans.reshape(-1, 3)
+    lx, ly = glob_scans[:, 0], glob_scans[:, 1]
+    glob_obs = glob_scans[:, 2]
 
-        theta = poses[i, 2]
-        r_i = rotation_matrix(theta)
-        scan_xy_i_mat = scan_xy_i.reshape((2, -1), order='F')
-        pose_vec = poses[i, :2].T
-        s_i = (r_i @ scan_xy_i_mat) + pose_vec
-        xy = (s_i / Config.SCALE).round().astype(np.int32)
+    # Get cos(theta) and sin(theta) for all poses for each beam
+    pose_idxs = np.repeat(np.arange(n_poses), Config.N_BEAMS)
+    thetas = poses[pose_idxs, 2]
+    cos_t, sin_t = np.cos(thetas), np.sin(thetas)
 
-        grid_inter = bilinear_interpolation(grid, xy.T)
-        n_inter = bilinear_interpolation(n, xy.T)
+    # Transform scan data into global coordinate space
+    gx = (lx * cos_t - ly * sin_t + poses[pose_idxs, 0]) / Config.SCALE
+    gy = (lx * sin_t + ly * cos_t + poses[pose_idxs, 1]) / Config.SCALE
+    xy = np.stack([gx, gy], axis=1)
 
-        err_s.append(grid_inter / n_inter - scan_odd_i)
+    # Global bilinear interpolation
+    m_v, mask, idxs, weights = bilinear_interpolation(grid, xy)
+    n_v, _, _, _ = bilinear_interpolation(n, xy)
 
-        g_u_inter = bilinear_interpolation(g_u, xy.T)
-        g_v_inter = bilinear_interpolation(g_v, xy.T)
+    # Gradient bilinear interpolation
+    gu_v, _, _, _ = bilinear_interpolation(gu, xy)
+    gv_v, _, _, _ = bilinear_interpolation(gv, xy)
 
-        d_m_d_xy = np.vstack([g_u_inter / n_inter, g_v_inter / n_inter])
-        d_r_i = d_rotation_matrix(theta)
-        d_xy_d_r_i = (d_r_i.T @ scan_xy_i_mat) / Config.SCALE
-        d_m_d_r_i = np.sum(d_m_d_xy * d_xy_d_r_i, axis=0)
-        d_m_d_t = d_m_d_xy / Config.SCALE
-        d_m_d_p = np.vstack([d_m_d_t, d_m_d_r_i[None, :]])
+    # Filter and invert n results
+    n_safe = np.where(n_v[mask] == 0, 1.0, n_v[mask])
+    inv_n = 1.0 / (n_safe * Config.SCALE)
 
-        n_pts_i = scan_odd_i.size
-        id_i = np.arange(n_pts, n_pts + n_pts_i)
-        n_pts += n_pts_i
+    # Compute residual sensor error
+    err_s = m_v[mask] / n_safe - glob_obs[mask]
+    n_valid = err_s.size
 
-        for j in range(n_pts_i):
-            for k in range(3):
-                jp_id_i.append(id_i[j])
-                jp_id_j.append(3 * i + k)
-                jp_val.append(d_m_d_p[k, j])
+    # Build pose Jacobian translation and rotation components
+    dm_dx = gu_v[mask] * inv_n
+    dm_dy = gv_v[mask] * inv_n
+    dgx_dt = (-lx[mask] * sin_t[mask] - ly[mask] * cos_t[mask]) / Config.SCALE
+    dgy_dt = (lx[mask] * cos_t[mask] - ly[mask] * sin_t[mask]) / Config.SCALE
+    dm_dt = (gu_v[mask] * dgx_dt + gv_v[mask] * dgy_dt) * inv_n
 
-        xy_floor = np.floor(xy)
-        u_a, v_a = xy[0], xy[1]
-        u_b, v_b = xy_floor[0], xy_floor[1]
+    # Assemble pose Jacobian
+    rows = np.arange(n_valid)
+    valid_pose_idxs = pose_idxs[mask]
+    jp_i = np.tile(rows, 3)
+    jp_j = np.concatenate([
+        3 * valid_pose_idxs,
+        3 * valid_pose_idxs + 1,
+        3 * valid_pose_idxs + 2
+    ])
+    jp_v = np.concatenate([dm_dx, dm_dy, dm_dt])
+    jp = sp.csc_matrix((jp_v, (jp_i, jp_j)), shape=(n_valid, 3 * n_poses))
 
-        a = (v_b + 1 - v_a) * (u_b + 1 - u_a) / n_inter
-        b = (v_a - v_b) * (u_b + 1 - u_a) / n_inter
-        c = (v_b + 1 - v_a) * (u_a - u_b) / n_inter
-        d = (v_a - v_b) * (u_a - u_b) / n_inter
+    # Assemble disparity Jacobian
+    jd_i = np.tile(rows, 4)
+    jd_j = idxs.ravel()
+    jd_v = (weights * inv_n).ravel()
+    jd = sp.csc_matrix((jd_v, (jd_i, jd_j)), shape=(n_valid, grid.size))
 
-        d_e_d_m = np.vstack([a, b, c, d])
+    # Get odometry Jacobian
+    err_o, jo = compute_jo(poses, odometry)
 
-        a_idx = Config.SIZE_H * v_b + u_b
-        b_idx = Config.SIZE_H * (v_b + 1) + u_b
-        c_idx = Config.SIZE_H * v_b + u_b + 1
-        d_idx = Config.SIZE_H * (v_b + 1) + u_b + 1
-
-        d_e_d_m_id = np.vstack([a_idx, b_idx, c_idx, d_idx])
-
-        for j in range(n_pts_i):
-            for k in range(4):
-                jd_id_i.append(id_i[j])
-                jd_id_j.append(d_e_d_m_id[k, j])
-                jd_val.append(d_e_d_m[k, j])
-
-        if i < n_poses - 1:
-            cnt_i = 3 * i
-            p_a = poses[i]
-            p_b = poses[i + 1]
-            d_t = r_i.T @ (p_b[:2] - p_a[:2])
-            d_phi = wrap_radians(p_b[2] - p_a[2])
-            e_o_i = np.zeros(3, np.float64)
-            e_o_i[:2] = d_t
-            e_o_i[2] = d_phi
-            e_o_i = e_o_i - odometry[i + 1]
-            e_o_i[2] = wrap_radians(e_o_i[2])
-            err_o.append(e_o_i)
-
-            d_t_d_t_a = -r_i.T
-            d_t_d_t_b = r_i.T
-            d_t_d_phi = d_r_i @ (p_b[:2] - p_a[:2])
-            d_phi_d_a = -1.0
-            d_phi_d_b = 1.0
-
-            aa = np.arange(3 * i, 3 * i + 3)
-            bb = np.arange(3 * (i + 1), 3 * (i + 1) + 3)
-
-            jo_id_i += [
-                cnt_i, cnt_i, cnt_i + 1, cnt_i + 1,
-                cnt_i, cnt_i, cnt_i + 1, cnt_i + 1,
-                cnt_i, cnt_i + 1, cnt_i + 2, cnt_i + 2
-            ]
-            jo_id_j += [
-                aa[0], aa[1], aa[0], aa[1],
-                bb[0], bb[1], bb[0], bb[1],
-                aa[2], aa[2], aa[2], bb[2]
-            ]
-            jo_val += [
-                d_t_d_t_a[0, 0], d_t_d_t_a[0, 1], d_t_d_t_a[1, 0],
-                d_t_d_t_a[1, 1], d_t_d_t_b[0, 0], d_t_d_t_b[0, 1],
-                d_t_d_t_b[1, 0], d_t_d_t_b[1, 1], d_t_d_phi[0],
-                d_t_d_phi[1], d_phi_d_a, d_phi_d_b
-            ]
-
-    err_s = np.concatenate(err_s)
-    err_o = np.concatenate(err_o)
-
-    jp = sp.coo_matrix(
-        (jp_val, (jp_id_i, jp_id_j)),
-        shape=(err_s.size, 3 * n_poses)
-    ).tocsc()
-    jd = sp.coo_matrix(
-        (jd_val, (jd_id_i, jd_id_j)),
-        shape=(err_s.size, Config.SIZE_W * Config.SIZE_H)
-    ).tocsc()
-    jo = sp.coo_matrix(
-        (jo_val, (jo_id_i, jo_id_j)),
-        shape=(3 * (n_poses - 1), 3 * n_poses)
-    ).tocsc()
-
-    i_o, i_s = get_i_matrices(odometry, err_s)
-
-    return jp, jd, jo, i_s, i_o, err_s, err_o
+    return jp, jd, jo, err_s, err_o

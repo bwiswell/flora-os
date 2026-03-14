@@ -41,7 +41,7 @@ def delta (
             of `err_s`), `w` is the map width, and `h` is the map height.
         jo (`csc_matrix`):
             A `csc_matrix` containing the observation Jacobian with shape
-            (3 * `n`, 3 * `n`), where `n` is the number of poses.
+            (3 * (`n` - 1), 3 * `n`), where `n` is the number of poses.
         err_s (`ndarray`):
             A 1D `ndarray` of sensor error values with shape (`m`), where `m`
             is the number of sensor measurements.
@@ -67,7 +67,7 @@ def delta (
             parameter deltas with shape (`w` * `h`), where `w` is the map width
             and `h` is the map height.
             - **delta_p** (`ndarray`): A 1D `ndarray` of pose parameter deltas
-            with shape (3 * (`n` - 1)), where `n` is the number of poses.
+            with shape (3 * `n`)), where `n` is the number of poses.
             - **mean_delta** (`float`): The mean delta across all parameters.
             - **mean_delta_p** (`float`): The mean delta across all pose
             parameters.
@@ -105,8 +105,8 @@ def delta (
     delta_p = delta[:num_p]
     delta_d = delta[num_p:]
 
-    # Compute mean delta values
-    mean_delta = np.mean(delta**2)
-    mean_delta_p = np.mean(delta_p**2)
+    # Compute RMS values
+    mean_delta = np.sqrt(np.mean(delta**2))
+    mean_delta_p = np.sqrt(np.mean(delta_p**2))
 
     return delta_d, delta_p, mean_delta, mean_delta_p

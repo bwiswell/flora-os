@@ -1,6 +1,12 @@
 class Config:
     MODE_MULTI = True
-    WEIGHT_O = 0.5
+
+    WEIGHT_O = 1.0
+    WEIGHT_S = 0.3
+    WEIGHT_THETA = 600.0
+    WEIGHT_XY = 150.0
+
+    N_BEAMS = 12
 
     DOWN_ITERS = 20
     DOWN_RATE = 10
@@ -12,7 +18,6 @@ class Config:
     MAP_SMOOTHING_WEIGHT_SECOND = 1e-7
 
     # Smooth n2
-    SOLVER_TOLERANCE_SECOND = 0.01
     WEIGHT_SMOOTH_N = 1.0
 
     MAX_ITERS = DOWN_ITERS + 3

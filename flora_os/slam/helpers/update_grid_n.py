@@ -3,28 +3,29 @@ import numpy.typing as npt
 
 from ..config import Config
 
-from .rotate_and_scale import rotate_and_scale
-
 
 def update_grid_n (
+            grid: npt.NDArray[np.float64],
             poses: npt.NDArray[np.float64],
-            scan_xy: list[npt.NDArray[np.float64]]
+            scans: npt.NDArray[np.float64]
         ) -> npt.NDArray[np.float64]:
     '''
     Returns a 2D `ndarray` of occupancy counts `n` according to the scan data
-    `scan_xy` collected at each pose in `poses`.
+    `scans` collected at each pose in `poses`.
 
     Parameters:
+        grid (`ndarray`):
+            A 2D `ndarray` of occupancy values with shape (`h`, `w`), where `h`
+            is the map height and `w` is the map width.
         poses (`ndarray`):
             A 2D `ndarray` of poses with shape (`n`, 3), where `n` is the
             number of poses, `x` values are stored in column 0, `y` values are
             stored in column 1, and `theta` values are stored in column 2.
-        scan_xy (`list[ndarray]`):
-            a `list` of length `n` of 2D `ndarray` of `xy`-coordinates with
-            shapes (2, `m`), where `n` is the number of poses scan data was
-            collected from (should match `poses`), `m` is the number of scan
-            angles collected at each pose, `x` values are stored in row 0, and
-            `y` values are stored in row 1.
+        scans (`ndarray`):
+            A 3D `ndarray` of sensor data with shape (`n`, `m`, 3), where `n`
+            is the number of poses, `m` is the number of beams per pose, local
+            `x` values are stored in column 0, local `y` values are stored in
+            column 1, and occupancy values are stored in column 2.
 
     Returns:
         n (`ndarray`):
@@ -32,33 +33,36 @@ def update_grid_n (
             `h` is the height of the occupancy map and `w` is the width of the
             occupancy map.
     '''
-    
-    # Create rotation matrices for all poses
-    cos_theta = np.cos(poses[:, 2])
-    sin_theta = np.sin(poses[:, 2])
-    r = np.stack(
-        [
-            np.stack([cos_theta, -sin_theta], axis=1),
-            np.stack([sin_theta, cos_theta], axis=1)
-        ],
-        axis = 1
-    )
 
-    # Transform xy-coordinates
-    xy = np.hstack([
-        r[i] @ scan_xy[i] + poses[i, :2, np.newaxis]
-        for i in range(len(scan_xy))
-    ])
+    h, w = grid.shape
+    n_poses = poses.shape[0]
 
-    # Scale and round coordinates
-    xy = np.round(xy / Config.SCALE).astype(np.int32)
+    # Reshape scan data
+    glob_scans = scans.reshape(-1, 3)
+    lx, ly = glob_scans[:, 0], glob_scans[:, 1]
 
-    # Create a validation mask to ensure in-bounds 'hits'
-    mask = (xy[0] >= 0) and (xy[0] < Config.SIZE_J) and \
-            (xy[1] >= 0) and (xy[1] < Config.SIZE_I)
+    # Get cos(theta) and sin(theta) for all poses for each beam
+    pose_idxs = np.repeat(np.arange(n_poses), Config.N_BEAMS)
+    thetas = poses[pose_idxs, 2]
+    cos_t, sin_t = np.cos(thetas), np.sin(thetas)
 
-    # Create histogram of 'hits' in n
-    n = np.zeros((Config.SIZE_I, Config.SIZE_J), np.float64)
-    np.add.at(n, (xy[1, mask], xy[0, mask]), 1)
+    # Transform scan data into global coordinate space
+    gx = (lx * cos_t - ly * sin_t + poses[pose_idxs, 0]) / Config.SCALE
+    gy = (lx * sin_t + ly * cos_t + poses[pose_idxs, 1]) / Config.SCALE
+
+    # Clip and cast scan data
+    rows = np.rint(gy).astype(np.int32)
+    cols = np.rint(gx).astype(np.int32)
+
+    # Mask out-of-bounds points
+    mask = (rows >= 0) and (rows < h) and (cols >= 0) and (cols < w)
+    valid_rows = rows[mask]
+    valid_cols = cols[mask]
+
+    # Convert coordinates to indices
+    indices = valid_rows * w + valid_cols
+
+    # Create n
+    n = np.bincount(indices, minlength=h*w)
 
     return n
