@@ -60,7 +60,7 @@ class SLAMSolver:
                     low_scan_odd
                 )
 
-                delta_p, delta_d, mean_delta, mean_delta_p = delta(
+                delta_d, delta_p, mean_delta, mean_delta_p = delta(
                     grid,
                     jp,
                     jd,

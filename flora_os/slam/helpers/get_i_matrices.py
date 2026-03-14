@@ -22,7 +22,7 @@ def get_i_matrices (
             is the number of sensor measurements.
 
     Returns:
-        i_matrices (`tuple[csc_matrix]`):
+        i_matrices (`tuple[csc_matrix, csc_matrix]`):
             A `tuple` containing two `csc_matrix` sparse identity matrices used
             for weighting error terms for optimization of the gradient descent.
 

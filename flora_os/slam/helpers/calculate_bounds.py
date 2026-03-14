@@ -18,7 +18,7 @@ def calculate_bounds (
             is the map height and `w` is the map width.
 
     Returns:
-        uniq_indices (`tuple[ndarray]`):
+        uniq_indices (`tuple[ndarray, ndarray]`):
             A `tuple` containing two 2D `ndarray` containing indices derived
             from a 2D convolution over `grid`.
 

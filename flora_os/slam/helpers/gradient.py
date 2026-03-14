@@ -18,7 +18,7 @@ def gradient (
             The side length of each square 'cell' in the occupancy map.
 
     Returns:
-        gradients (`tuple[ndarray]`):
+        gradients (`tuple[ndarray, ndarray]`):
             A `tuple` containing two 2D `ndarray` gradient matrices derived
             from `grid`, each with shape (`h`, `w`), where `h` is the map
             height and `w` is the map width.
