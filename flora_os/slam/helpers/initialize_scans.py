@@ -9,9 +9,9 @@ def initialize_scans (
             config: Config
         ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.int32]]:
     '''
-    Returns a `tuple` containing two `ndarray`; the first corresponds to raw
-    'beams' of scan data, the second contains indices relating those beams to
-    their corresponding poses.
+    Returns a `tuple` containing two `ndarray`; the first corresponds to
+    downsampled sensor measurements, the second contains indices relating those
+    measurements to their corresponding poses.
 
     Parameters:
         sonar (`ndarray`):
@@ -24,9 +24,9 @@ def initialize_scans (
 
     Returns:
         scan_data (`tuple[ndarray, ndarray]`):
-            A `tuple` containing two `ndarray`; the first corresponds to raw
-            points of scan data, the second contains indices relating those
-            beams to their corresponding poses.
+            A `tuple` containing two `ndarray`; the first corresponds to sensor
+            measurements of scan data, the second contains indices relating
+            those measurements to their corresponding poses.
 
             - **scans** (`ndarray`): A 2D `ndarray` of sensor data with shape
             (`l`, 3), where `l` is the number of valid (in-bounds) sensor
@@ -36,7 +36,6 @@ def initialize_scans (
             - **pose_idxs** (`ndarray`): A 1D `ndarray` of pose indices with
             shape (`l`), where `l` is the number of valid (in-bounds) sensor
             measurements.
-        
     '''
     
     n_poses, n_beams, _ = sonar.shape

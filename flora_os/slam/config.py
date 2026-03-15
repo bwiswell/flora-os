@@ -3,22 +3,16 @@ from typing import Union
 
 
 class Config:
-    MODE_MULTI = True
-
-    WEIGHT_S = 0.3
-
     DOWN_ITERS = 20
-    DOWN_RATE = 10
-
     MAX_ITERS = DOWN_ITERS + 3
     MIN_DELTA = 100
     MIN_DELTA_P = 0.0002
     MIN_MEAN_DELTA_FIRST = 100
     MIN_MEAN_DELTA_POSE_FIRST = 0.0002
 
+    # Constants
     FREE = -0.405465108108164
     OCCUPIED = 0.847297860387203
-
 
     # Odometry info
     CONFIDENCE_ODOM = 0.2
@@ -38,12 +32,14 @@ class Config:
 
     def __init__ (
                 self,
-                beams: int,
+                down_rate: int,
                 grid_size: tuple[int, int],
                 scale: float
             ):
-        self.beams = beams
-        self.size_j, self.size_i = grid_size
+        self.down_rate = down_rate
+        req_j, req_i = grid_size
+        self.size_i = (req_i // down_rate) * down_rate
+        self.size_j = (req_j // down_rate) * down_rate
         self.scale = scale
 
 
@@ -59,13 +55,12 @@ class Config:
     
     @property
     def var_mask_iters (self) -> int:
-        d_theta = (2 * np.pi) / self.beams
-        max_gap = Config.MAX_RANGE_M_SONAR * d_theta
+        max_gap = Config.MAX_RANGE_M_SONAR * Config.CONE_HALF_WIDTH
         return np.clip(
-            int(np.ceil(0.5 * max_gap / self.scale)),
-            2, 10
+            int(np.ceil(max_gap / self.scale)),
+            2, 12
         )
-    
+
     # Odometry identity matrix
     @property
     def weight_theta (self) -> float:
@@ -91,7 +86,18 @@ class Config:
         tol = self.scale * 0.01
         max_iters = int(np.clip(np.sqrt(n_vars) * 10, 50, 1000))
         return { 'tol': tol, 'atol': tol * 0.1, 'maxiter': max_iters }
-    
+
+    # Down/upsampling
+    def downsample (self):
+        self.size_i = self.size_i // self.down_rate
+        self.size_j = self.size_j // self.down_rate
+        self.scale = self.scale * self.down_rate
+
+    def upsample (self):
+        self.size_i *= self.down_rate
+        self.size_j *= self.down_rate
+        self.scale /= self.down_rate
+
     # Smooth n2
     def smooth_solver_params (
                 self,

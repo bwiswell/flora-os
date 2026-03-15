@@ -1,6 +1,7 @@
 from .delta import delta
 from .diff_jacobian import diff_jacobian
 from .calculate_bounds import calculate_bounds
+from .downsample_scans import downsample_scans
 from .initialize_grid_map import initialize_grid_map
 from .initialize_odometry import initialize_odometry
 from .initialize_scans import initialize_scans
