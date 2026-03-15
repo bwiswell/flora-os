@@ -12,7 +12,8 @@ def diff_jacobian (
             n: np.ndarray,
             poses: np.ndarray,
             odometry: np.ndarray,
-            scans: np.ndarray
+            scans: np.ndarray,
+            config: Config
         ) -> tuple[
             sp.csc_matrix,
             sp.csc_matrix,
@@ -47,6 +48,8 @@ def diff_jacobian (
             is the number of poses, `m` is the number of beams per pose, local
             `x` values are stored in column 0, local `y` values are stored in
             column 1, and occupancy values are stored in column 2.
+        config (`Config`):
+            The configuration object to obtain setting selection values from.
 
     Returns:
         js (`tuple[csc_matrix, csc_matrix, csc_matrx, ndarray, ndarray`]):
@@ -66,9 +69,10 @@ def diff_jacobian (
     '''
     
     n_poses = poses.shape[0]
+    n_beams = scans.shape[1]
 
     # Compute spatial gradients
-    gv, gu = np.gradient(grid, Config.SCALE)
+    gv, gu = np.gradient(grid, config.scale)
 
     # Reshape scan data
     glob_scans = scans.reshape(-1, 3)
@@ -76,13 +80,13 @@ def diff_jacobian (
     glob_obs = glob_scans[:, 2]
 
     # Get cos(theta) and sin(theta) for all poses for each beam
-    pose_idxs = np.repeat(np.arange(n_poses), Config.N_BEAMS)
+    pose_idxs = np.repeat(np.arange(n_poses), n_beams)
     thetas = poses[pose_idxs, 2]
     cos_t, sin_t = np.cos(thetas), np.sin(thetas)
 
     # Transform scan data into global coordinate space
-    gx = (lx * cos_t - ly * sin_t + poses[pose_idxs, 0]) / Config.SCALE
-    gy = (lx * sin_t + ly * cos_t + poses[pose_idxs, 1]) / Config.SCALE
+    gx = (lx * cos_t - ly * sin_t + poses[pose_idxs, 0]) / config.scale
+    gy = (lx * sin_t + ly * cos_t + poses[pose_idxs, 1]) / config.scale
     xy = np.stack([gx, gy], axis=1)
 
     # Global bilinear interpolation
@@ -95,7 +99,7 @@ def diff_jacobian (
 
     # Filter and invert n results
     n_safe = np.where(n_v[mask] == 0, 1.0, n_v[mask])
-    inv_n = 1.0 / (n_safe * Config.SCALE)
+    inv_n = 1.0 / (n_safe * config.scale)
 
     # Compute residual sensor error
     err_s = m_v[mask] / n_safe - glob_obs[mask]
@@ -104,8 +108,8 @@ def diff_jacobian (
     # Build pose Jacobian translation and rotation components
     dm_dx = gu_v[mask] * inv_n
     dm_dy = gv_v[mask] * inv_n
-    dgx_dt = (-lx[mask] * sin_t[mask] - ly[mask] * cos_t[mask]) / Config.SCALE
-    dgy_dt = (lx[mask] * cos_t[mask] - ly[mask] * sin_t[mask]) / Config.SCALE
+    dgx_dt = (-lx[mask] * sin_t[mask] - ly[mask] * cos_t[mask]) / config.scale
+    dgy_dt = (lx[mask] * cos_t[mask] - ly[mask] * sin_t[mask]) / config.scale
     dm_dt = (gu_v[mask] * dgx_dt + gv_v[mask] * dgy_dt) * inv_n
 
     # Assemble pose Jacobian

@@ -52,18 +52,6 @@ def initialize_hh () -> sp.csc_matrix:
     return hh
 
 
-def poses_to_odometry (poses: np.ndarray) -> np.ndarray:
-    odometry = np.zeros_like(poses)
-    odometry[0, :] = poses[0, :]
-    for i in range(1, poses.shape[0]):
-        d_xy = poses[i, 0:2] - poses[i-1, 0:2]
-        r_inv = rotation_matrix(poses[i-1, 2]).T
-        odometry[i, 0:2] = r_inv @ d_xy
-        d_theta = poses[i, 2] - poses[i-1, 2]
-        odometry[i, 2] = wrap_radians(d_theta)
-    return odometry
-
-
 def preprocess_scans (
             scans: np.ndarray
         ) -> tuple[list[np.ndarray], list[np.ndarray]]:

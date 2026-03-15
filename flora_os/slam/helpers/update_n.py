@@ -7,7 +7,8 @@ from ..config import Config
 def update_n (
             n: npt.NDArray[np.float64],
             poses: npt.NDArray[np.float64],
-            scans: npt.NDArray[np.float64]
+            scans: npt.NDArray[np.float64],
+            config: Config
         ) -> npt.NDArray[np.float64]:
     '''
     Returns a 2D `ndarray` of occupancy counts `n` according to the scan data
@@ -27,6 +28,8 @@ def update_n (
             is the number of poses, `m` is the number of beams per pose, local
             `x` values are stored in column 0, local `y` values are stored in
             column 1, and occupancy values are stored in column 2.
+        config (`Config`):
+            The configuration object to obtain setting selection values from.
 
     Returns:
         n (`ndarray`):
@@ -37,19 +40,20 @@ def update_n (
 
     h, w = n.shape
     n_poses = poses.shape[0]
+    n_beams = scans.shape[1]
 
     # Reshape scan data
     glob_scans = scans.reshape(-1, 3)
     lx, ly = glob_scans[:, 0], glob_scans[:, 1]
 
     # Get cos(theta) and sin(theta) for all poses for each beam
-    pose_idxs = np.repeat(np.arange(n_poses), Config.N_BEAMS)
+    pose_idxs = np.repeat(np.arange(n_poses), n_beams)
     thetas = poses[pose_idxs, 2]
     cos_t, sin_t = np.cos(thetas), np.sin(thetas)
 
     # Transform scan data into global coordinate space
-    gx = (lx * cos_t - ly * sin_t + poses[pose_idxs, 0]) / Config.SCALE
-    gy = (lx * sin_t + ly * cos_t + poses[pose_idxs, 1]) / Config.SCALE
+    gx = (lx * cos_t - ly * sin_t + poses[pose_idxs, 0]) / config.scale
+    gy = (lx * sin_t + ly * cos_t + poses[pose_idxs, 1]) / config.scale
 
     # Clip and cast scan data
     rows = np.rint(gy).astype(np.int32)

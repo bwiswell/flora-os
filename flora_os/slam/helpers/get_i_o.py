@@ -5,7 +5,10 @@ import scipy.sparse as sp
 from ..config import Config
 
 
-def get_i_o (odometry: npt.NDArray[np.float64]) -> sp.csc_matrix:
+def get_i_o (
+            odometry: npt.NDArray[np.float64],
+            config: Config
+        ) -> sp.csc_matrix:
     '''
     Returns a sparse identity matrix derived from the shapes of the incremental
     odometry data in `odometry` and the error weights in `Config`.
@@ -16,6 +19,8 @@ def get_i_o (odometry: npt.NDArray[np.float64]) -> sp.csc_matrix:
             (`n`, 3), where `n` is the number of poses, `d_x` values are stored
             in column 0, `d_y` values are stored in column 1, and `d_theta`
             values are stored in column 2.
+        config (`Config`):
+            The configuration object to obtain setting selection values from.
 
     Returns:
         i_o (`csc_matrix`): The sparse identity matrix for `odometry` with
@@ -26,7 +31,7 @@ def get_i_o (odometry: npt.NDArray[np.float64]) -> sp.csc_matrix:
     # Create the sparse identity matrix for odometry
     n_o = odometry.shape[0] - 1
     sig_o = np.array(
-        [Config.WEIGHT_XY, Config.WEIGHT_XY, Config.WEIGHT_THETA],
+        [config.weight_xy, config.weight_xy, config.weight_theta],
         np.float64
     )
     diag_sig_o = np.tile(sig_o, n_o)

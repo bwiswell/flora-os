@@ -1,6 +1,5 @@
 import numpy as np
 import numpy.typing as npt
-import scipy.sparse as sp
 
 from ..config import Config
 
@@ -8,7 +7,8 @@ from ..config import Config
 def select_scan (
             poses: npt.NDArray[np.float64],
             scans: npt.NDArray[np.float64],
-            sel_id: npt.NDArray[np.int32]
+            sel_id: npt.NDArray[np.int32],
+            config: Config
         ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.int32]]:
     '''
     Returns the subset of scan data with beams that fall within the active
@@ -29,6 +29,8 @@ def select_scan (
             is the number of selection indices, `i` indices are stored in
             column 0, and `j` indices are stored in column 1. Defaults to
             `None`.
+        config (`Config`):
+            The configuration object to obtain setting selection values from.
 
     Returns:
         sel_scan_data (`tuple[ndarray, ndarray]`):
@@ -46,7 +48,7 @@ def select_scan (
             within the selected area.
     '''
     
-    h, w = Config.SIZE_I, Config.SIZE_J
+    h, w = config.size_i, config.size_j
     n_poses, m_beams, _ = poses.shape[0]
 
     # Reshape scan data
@@ -59,8 +61,8 @@ def select_scan (
     cos_t, sin_t = np.cos(thetas), np.sin(thetas)
 
     # Transform scan data into global coordinate space
-    gx = (lx * cos_t - ly * sin_t + poses[pose_idxs, 0]) / Config.SCALE
-    gy = (lx * sin_t + ly * cos_t + poses[pose_idxs, 1]) / Config.SCALE
+    gx = (lx * cos_t - ly * sin_t + poses[pose_idxs, 0]) / config.scale
+    gy = (lx * sin_t + ly * cos_t + poses[pose_idxs, 1]) / config.scale
 
     # Create in-bounds mask
     rows = np.floor(gy).astype(np.int32)

@@ -6,17 +6,9 @@ class Config:
     MODE_MULTI = True
 
     WEIGHT_S = 0.3
-    WEIGHT_THETA = 600.0
-    WEIGHT_XY = 150.0
 
     DOWN_ITERS = 20
     DOWN_RATE = 10
-
-    MAP_SMOOTHING_WEIGHT_FIRST = 1e-7
-    MAP_SMOOTHING_WEIGHT_SECOND = 2.0
-
-    # Smooth n2
-    WEIGHT_SMOOTH_N = 1.0
 
     MAX_ITERS = DOWN_ITERS + 3
     MIN_DELTA = 100
@@ -24,30 +16,34 @@ class Config:
     MIN_MEAN_DELTA_FIRST = 100
     MIN_MEAN_DELTA_POSE_FIRST = 0.0002
 
-    SIZE_I = 100000
-    SIZE_J = 100000
-
     FREE = -0.405465108108164
     OCCUPIED = 0.847297860387203
 
 
     # Odometry info
-    WEIGHT_O = 0.25
+    CONFIDENCE_ODOM = 0.2
+    WEIGHT_ODOM = 0.25
 
     # Sensor (HC-SR04) info
-    MAX_RANGE_METERS = 3.0
+    CONE_HALF_WIDTH = np.radians(7.5)
+    MAX_RANGE_M_SONAR = 3.0
 
     # Calculate bounds
     MIN_ERROR_METERS = 0.75
     MIN_ERROR_PIXELS = 5
 
+    # Select Laplacian
+    SELECT_BASE_SMOOTHING = 8.0
+
 
     def __init__ (
                 self,
                 beams: int,
-                scale: float    
+                grid_size: tuple[int, int],
+                scale: float
             ):
         self.beams = beams
+        self.size_j, self.size_i = grid_size
         self.scale = scale
 
 
@@ -64,17 +60,46 @@ class Config:
     @property
     def var_mask_iters (self) -> int:
         d_theta = (2 * np.pi) / self.beams
-        max_gap = Config.MAX_RANGE_METERS * d_theta
+        max_gap = Config.MAX_RANGE_M_SONAR * d_theta
         return np.clip(
             int(np.ceil(0.5 * max_gap / self.scale)),
             2, 10
         )
     
+    # Odometry identity matrix
+    @property
+    def weight_theta (self) -> float:
+        return Config.CONFIDENCE_ODOM * 50.0
+    
+    @property
+    def weight_xy (self) -> float:
+        return Config.CONFIDENCE_ODOM * (1.0 / self.scale**2)
+    
+    # Select Laplacian
+    @property
+    def select_smoothing_weight (self) -> float:
+        return Config.SELECT_BASE_SMOOTHING / self.scale
+
 
     ### METHODS ###
 
     # Calculate deltas
-    def delta_solver_params (self, n: int) -> dict[str, Union[int, float]]:
+    def delta_solver_params (
+                self,
+                n_vars: int
+            ) -> dict[str, Union[int, float]]:
         tol = self.scale * 0.01
-        max_iters = int(np.clip(np.sqrt(n) * 10, 50, 1000))
+        max_iters = int(np.clip(np.sqrt(n_vars) * 10, 50, 1000))
         return { 'tol': tol, 'atol': tol * 0.1, 'maxiter': max_iters }
+    
+    # Smooth n2
+    def smooth_solver_params (
+                self,
+                select: bool,
+                n_vars: int
+            ) -> dict[str, Union[int, float]]:
+        diff = 0.1 / self.scale
+        base_iters = int(np.sqrt(n_vars) * diff)
+        max_iters = int(np.clip(base_iters, 100, 1000))
+        tol = 1e-3 if select else 5e-5
+        return { 'tol': tol, 'atol': tol * 0.1, 'maxiter': max_iters}

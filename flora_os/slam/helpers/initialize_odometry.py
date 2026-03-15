@@ -5,7 +5,8 @@ from ..config import Config
 
 
 def initialize_odometry (
-            imu_poses: npt.NDArray[np.float64]
+            imu_poses: npt.NDArray[np.float64],
+            config: Config
         ) -> npt.NDArray[np.float64]:
     '''
     Returns a `tuple` of two 2D 'ndarray' containing odometry 'increment'
@@ -18,6 +19,8 @@ def initialize_odometry (
             A 2D `ndarray` of poses with shape (`n`, 3), where `n` is the
             number of poses, `x` values are stored in column 0, `y` values are
             stored in column 1, and `theta` values are stored in column 2.
+        config (`Config`):
+            The configuration object to obtain setting selection values from.
 
     Returns:
         positioning_data (`tuple[ndarray, ndarray]`):
@@ -38,8 +41,8 @@ def initialize_odometry (
     poses = imu_poses.copy()
 
     # Offset the initial pose estimates to avoid negative coordinates
-    poses[:, 0] += (Config.SIZE_J * Config.SCALE) / 2
-    poses[:, 1] += (Config.SIZE_I * Config.SCALE) / 2
+    poses[:, 0] += (config.size_j * config.scale) / 2
+    poses[:, 1] += (config.size_i * config.scale) / 2
 
     # Initialize the odometry ndarray
     odometry = np.zeros_like(poses)

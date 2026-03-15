@@ -3,6 +3,7 @@ from .diff_jacobian import diff_jacobian
 from .calculate_bounds import calculate_bounds
 from .initialize_grid_map import initialize_grid_map
 from .initialize_odometry import initialize_odometry
+from .initialize_scans import initialize_scans
 from .select_initial_grid import select_initial_grid
 from .select_laplacian import select_laplacian
 from .select_scan import select_scan

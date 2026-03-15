@@ -11,6 +11,7 @@ from ..config import Config
 def smooth_n2 (
             n: npt.NDArray[np.float64],
             weighted_hh: sp.csc_matrix,
+            config: Config,
             sel_id_var: Optional[npt.NDArray[np.int32]] = None
         ) -> npt.NDArray[np.float64]:
     '''
@@ -27,6 +28,8 @@ def smooth_n2 (
             A `csc_matrix` containing a weighted Hessian with shape
             (`w` * `h`, `w` * `h`), where `w` is the map width and `h` is the
             map height.
+        config (`Config`):
+            The configuration object to obtain setting selection values from.
         sel_id_var (`Optional[ndarray]`):
             A 2D `ndarray` of selection indices with shape (`n`, 2), where `n`
             is the number of selection indices, `i` indices are stored in
@@ -57,26 +60,12 @@ def smooth_n2 (
     # Create Jacobi preconditioner
     m_inv = sp.diags(1.0 / np.maximum(ii.diagonal(), 1e-6))
 
-    # Create solver params
-    base_iter = 200
-    maxiter = int(np.clip(base_iter * (0.1 / Config.SCALE), 100, 1000))
-    if sel_id_var is not None:
-        maxiter = maxiter // 2
-        tol = 1e-4
-        atol = 1e-6
-    else:
-        tol = 1e-6 * (Config.SCALE / 0.1)
-        atol = 1e-8
-
     # Solve the system with the Conjugate Gradient method
-    delta_active, _ = spl.cg(
-        ii,
-        b_vec,
-        M=m_inv,
-        tol=tol,
-        atol=atol,
-        maxiter=maxiter
+    params = config.smooth_solver_params(
+        sel_id_var is not None,
+        len(active_indices) if sel_id_var is not None else n.size
     )
+    delta_active, _ = spl.cg(ii, b_vec, M=m_inv, **params)
 
     # Update the full grid
     if sel_id_var is not None:

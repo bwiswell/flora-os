@@ -8,7 +8,8 @@ from ..config import Config
 def select_initial_grid (
             poses: npt.NDArray[np.float64],
             sel_scans: npt.NDArray[np.float64],
-            pose_idxs: npt.NDArray[np.int32]
+            pose_idxs: npt.NDArray[np.int32],
+            config: Config
         ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     '''
     Returns `tuple` of two 2D `ndarray` containing the initial occupancy map
@@ -28,6 +29,8 @@ def select_initial_grid (
         pose_idxs (`ndarray`): A 1D `ndarray` of pose indices with shape (`l`),
             where `l` is the number of sensor 'beams' that fall within the
             selected area.
+        config (`Config`):
+            The configuration object to obtain setting selection values from.
 
     Returns:
         initial_grid (`tuple[ndarray, ndarray]`):
@@ -42,7 +45,7 @@ def select_initial_grid (
             count map.
     '''
 
-    h, w = Config.SIZE_I, Config.SIZE_J
+    h, w = config.size_i, config.size_j
 
     # Reshape scan data
     lx, ly, obs = sel_scans[:, 0], sel_scans[:, 1], sel_scans[:, 2]
@@ -52,8 +55,8 @@ def select_initial_grid (
     cos_t, sin_t = np.cos(thetas), np.sin(thetas)
 
     # Transform scan data into global coordinate space
-    gx = (lx * cos_t - ly * sin_t + poses[pose_idxs, 0]) / Config.SCALE
-    gy = (lx * sin_t + ly * cos_t + poses[pose_idxs, 1]) / Config.SCALE
+    gx = (lx * cos_t - ly * sin_t + poses[pose_idxs, 0]) / config.scale
+    gy = (lx * sin_t + ly * cos_t + poses[pose_idxs, 1]) / config.scale
 
     # Find cell corners
     r_a = np.floor(gy).astype(np.int32)
@@ -94,4 +97,3 @@ def select_initial_grid (
     n = np.bincount(flat_idxs, weights=n_vals[mask], minlength=h*w)
 
     return grid.reshape(h, w), n.reshape(h, w)
-

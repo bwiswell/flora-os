@@ -5,7 +5,10 @@ import scipy.sparse as sp
 from ..config import Config
 
 
-def select_laplacian (sel_id_var: npt.NDArray[np.int32]) -> sp.csc_matrix:
+def select_laplacian (
+            sel_id_var: npt.NDArray[np.int32],
+            config: Config
+        ) -> sp.csc_matrix:
     '''
     Returns a weighted Laplacian smoothing matrix for the active subset of the
     grid defined by `sel_id_var`.
@@ -15,6 +18,8 @@ def select_laplacian (sel_id_var: npt.NDArray[np.int32]) -> sp.csc_matrix:
             A 2D `ndarray` of selection indices with shape (`n`, 2), where `n`
             is the number of selection indices, `i` indices are stored in
             column 0, and `j` indices are stored in column 1.
+        config (`Config`):
+            The configuration object to obtain setting selection values from.
 
     Returns:
         laplacian (`csc_matrix`):
@@ -22,14 +27,14 @@ def select_laplacian (sel_id_var: npt.NDArray[np.int32]) -> sp.csc_matrix:
             (`n`, `n`), where `n` is the number of selection indices.
     '''
 
-    h, w = Config.SIZE_I, Config.SIZE_J
+    h, w = config.size_i, config.size_j
 
     # Extract index values
     rows = sel_id_var[:, 0]
     cols = sel_id_var[:, 1]
 
     # Flatten and sort indices
-    flat_ids = rows * h + cols
+    flat_ids = rows * w + cols
     ids = np.sort(flat_ids)
     n_vars = len(ids)
 
@@ -37,8 +42,8 @@ def select_laplacian (sel_id_var: npt.NDArray[np.int32]) -> sp.csc_matrix:
     ids_self = np.searchsorted(ids, flat_ids)
 
     # Get neighbor target indices
-    ids_right = rows * h + (cols + 1)
-    ids_below = (rows + 1) * h + cols
+    ids_right = rows * w + (cols + 1)
+    ids_below = (rows + 1) * w + cols
 
     def get_neighbor_indices (targ_ids: np.ndarray):
         '''Finds neighbor indices that are part of the active subset.'''
@@ -70,6 +75,6 @@ def select_laplacian (sel_id_var: npt.NDArray[np.int32]) -> sp.csc_matrix:
     j = sp.csc_matrix((j_vals, (j_rows, j_cols)), shape=(n_const, n_vars))
 
     # Get the Laplacian
-    l = (j.T @ j) * Config.MAP_SMOOTHING_WEIGHT_SECOND
+    l = (j.T @ j) * config.select_smoothing_weight
 
     return l.tocsc()
