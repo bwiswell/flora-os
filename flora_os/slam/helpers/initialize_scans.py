@@ -25,15 +25,17 @@ def initialize_scans (
     Returns:
         scan_data (`tuple[ndarray, ndarray]`):
             A `tuple` containing two `ndarray`; the first corresponds to raw
-            'beams' of scan data, the second contains indices relating those
+            points of scan data, the second contains indices relating those
             beams to their corresponding poses.
 
             - **scans** (`ndarray`): A 2D `ndarray` of sensor data with shape
-            (`l`, 3), where `l` is the total number of 'valid' sensor beams,
-            local `x` values are stored in column 0, local `y` values are
-            stored in column 1, and occupancy values are stored in column 2.
+            (`l`, 3), where `l` is the number of valid (in-bounds) sensor
+            measurements, local `x` values are stored in column 0, local `y`
+            values are stored in column 1, and occupancy values are stored in
+            column 2.
             - **pose_idxs** (`ndarray`): A 1D `ndarray` of pose indices with
-            shape (`l`), where `l` is the total number of 'valid' sensor beams.
+            shape (`l`), where `l` is the number of valid (in-bounds) sensor
+            measurements.
         
     '''
     

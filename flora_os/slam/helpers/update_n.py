@@ -8,6 +8,7 @@ def update_n (
             n: npt.NDArray[np.float64],
             poses: npt.NDArray[np.float64],
             scans: npt.NDArray[np.float64],
+            pose_idxs: npt.NDArray[np.int32],
             config: Config
         ) -> npt.NDArray[np.float64]:
     '''
@@ -24,10 +25,13 @@ def update_n (
             number of poses, `x` values are stored in column 0, `y` values are
             stored in column 1, and `theta` values are stored in column 2.
         scans (`ndarray`):
-            A 3D `ndarray` of sensor data with shape (`n`, `m`, 3), where `n`
-            is the number of poses, `m` is the number of beams per pose, local
-            `x` values are stored in column 0, local `y` values are stored in
-            column 1, and occupancy values are stored in column 2.
+            A 2D `ndarray` of sensor data with shape (`l`, 3), where `l` is the
+            number of valid (in-bounds) sensor measurements, local `x` values
+            are stored in column 0, local `y` values are stored in column 1,
+            and occupancy values are stored in column 2.
+        pose_idxs (`ndarray`):
+            A 1D `ndarray` of pose indices with shape (`l`), where `l` is the
+            number of valid (in-bounds) sensor measurements.
         config (`Config`):
             The configuration object to obtain setting selection values from.
 
@@ -40,14 +44,11 @@ def update_n (
 
     h, w = n.shape
     n_poses = poses.shape[0]
-    n_beams = scans.shape[1]
 
     # Reshape scan data
-    glob_scans = scans.reshape(-1, 3)
-    lx, ly = glob_scans[:, 0], glob_scans[:, 1]
+    lx, ly = scans[:, 0], scans[:, 1]
 
     # Get cos(theta) and sin(theta) for all poses for each beam
-    pose_idxs = np.repeat(np.arange(n_poses), n_beams)
     thetas = poses[pose_idxs, 2]
     cos_t, sin_t = np.cos(thetas), np.sin(thetas)
 
@@ -55,9 +56,9 @@ def update_n (
     gx = (lx * cos_t - ly * sin_t + poses[pose_idxs, 0]) / config.scale
     gy = (lx * sin_t + ly * cos_t + poses[pose_idxs, 1]) / config.scale
 
-    # Clip and cast scan data
-    rows = np.rint(gy).astype(np.int32)
-    cols = np.rint(gx).astype(np.int32)
+    # Floor and cast scan data
+    rows = np.floor(gy).astype(np.int32)
+    cols = np.floor(gx).astype(np.int32)
 
     # Mask out-of-bounds points
     mask = (rows >= 0) & (rows < h) & (cols >= 0) & (cols < w)

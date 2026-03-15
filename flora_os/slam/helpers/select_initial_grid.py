@@ -22,13 +22,13 @@ def select_initial_grid (
             number of poses, `x` values are stored in column 0, `y` values are
             stored in column 1, and `theta` values are stored in column 2.
         sel_scans (`ndarray`): A 2D `ndarray` of sensor data with shape
-            (`l`, 3), where `l` is the number of sensor 'beams' that fall
-            within the selected area, `x` values are stored in column 0, local
-            `y` values are stored in column 1, and occupancy values are stored
-            in column 2.
+            (`l`, 3), where `l` is the number of valid (in-bounds) sensor
+            measuremnets that fall within the selected area, `x` values are
+            stored in column 0, local `y` values are stored in column 1, and
+            occupancy values are stored in column 2.
         pose_idxs (`ndarray`): A 1D `ndarray` of pose indices with shape (`l`),
-            where `l` is the number of sensor 'beams' that fall within the
-            selected area.
+            where `l` is the number of valid (in-bounds) sensor measurements
+            that fall within the selected area.
         config (`Config`):
             The configuration object to obtain setting selection values from.
 

@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.typing as npt
 import scipy.sparse as sp
 
 from ..config import Config
@@ -8,18 +9,19 @@ from .compute_jo import compute_jo
 
 
 def diff_jacobian (
-            grid: np.ndarray,
-            n: np.ndarray,
-            poses: np.ndarray,
-            odometry: np.ndarray,
-            scans: np.ndarray,
+            grid: npt.NDArray[np.float64],
+            n: npt.NDArray[np.float64],
+            poses: npt.NDArray[np.float64],
+            odometry: npt.NDArray[np.float64],
+            scans: npt.NDArray[np.float64],
+            pose_idxs: npt.NDArray[np.int32],
             config: Config
         ) -> tuple[
             sp.csc_matrix,
             sp.csc_matrix,
             sp.csc_matrix,
-            np.ndarray,
-            np.ndarray
+            npt.NDArray[np.float64],
+            npt.NDArray[np.float64]
         ]:
     '''
     Returns `tuple` of 3 `csc_matrix` and 2 `ndarray`, containing the pose
@@ -44,10 +46,13 @@ def diff_jacobian (
             in column 0, `d_y` values are stored in column 1, and `d_theta`
             values are stored in column 2.
         scans (`ndarray`):
-            A 3D `ndarray` of sensor data with shape (`n`, `m`, 3), where `n`
-            is the number of poses, `m` is the number of beams per pose, local
-            `x` values are stored in column 0, local `y` values are stored in
-            column 1, and occupancy values are stored in column 2.
+            A 2D `ndarray` of sensor data with shape (`l`, 3), where `l` is the
+            number of valid (in-bounds) sensor measurements, local `x` values
+            are stored in column 0, local `y` values are stored in column 1,
+            and occupancy values are stored in column 2.
+        pose_idxs (`ndarray`):
+            A 1D `ndarray` of pose indices with shape (`l`), where `l` is the
+            number of valid (in-bounds) sensor measurements.
         config (`Config`):
             The configuration object to obtain setting selection values from.
 
@@ -69,18 +74,15 @@ def diff_jacobian (
     '''
     
     n_poses = poses.shape[0]
-    n_beams = scans.shape[1]
 
     # Compute spatial gradients
     gv, gu = np.gradient(grid, config.scale)
 
     # Reshape scan data
-    glob_scans = scans.reshape(-1, 3)
-    lx, ly = glob_scans[:, 0], glob_scans[:, 1]
-    glob_obs = glob_scans[:, 2]
+    lx, ly = scans[:, 0], scans[:, 1]
+    glob_obs = scans[:, 2]
 
     # Get cos(theta) and sin(theta) for all poses for each beam
-    pose_idxs = np.repeat(np.arange(n_poses), n_beams)
     thetas = poses[pose_idxs, 2]
     cos_t, sin_t = np.cos(thetas), np.sin(thetas)
 
@@ -127,7 +129,7 @@ def diff_jacobian (
     # Assemble disparity Jacobian
     jd_i = np.tile(rows, 4)
     jd_j = idxs.ravel()
-    jd_v = (weights * inv_n).ravel()
+    jd_v = (weights * inv_n[:, None]).ravel()
     jd = sp.csc_matrix((jd_v, (jd_i, jd_j)), shape=(n_valid, grid.size))
 
     # Get odometry Jacobian

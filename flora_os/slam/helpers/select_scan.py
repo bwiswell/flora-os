@@ -7,6 +7,7 @@ from ..config import Config
 def select_scan (
             poses: npt.NDArray[np.float64],
             scans: npt.NDArray[np.float64],
+            pose_idxs: npt.NDArray[np.int32],
             sel_id: npt.NDArray[np.int32],
             config: Config
         ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.int32]]:
@@ -20,10 +21,13 @@ def select_scan (
             number of poses, `x` values are stored in column 0, `y` values are
             stored in column 1, and `theta` values are stored in column 2.
         scans (`ndarray`):
-            A 3D `ndarray` of sensor data with shape (`n`, `m`, 3), where `n`
-            is the number of poses, `m` is the number of beams per pose, local
-            `x` values are stored in column 0, local `y` values are stored in
-            column 1, and occupancy values are stored in column 2.
+            A 2D `ndarray` of sensor data with shape (`l`, 3), where `l` is the
+            number of valid (in-bounds) sensor measurements, local `x` values
+            are stored in column 0, local `y` values are stored in column 1,
+            and occupancy values are stored in column 2.
+        pose_idxs (`ndarray`):
+            A 1D `ndarray` of pose indices with shape (`l`), where `l` is the
+            number of valid (in-bounds) sensor measurements.
         sel_id (`ndarray`):
             A 2D `ndarray` of selection indices with shape (`n`, 2), where `n`
             is the number of selection indices, `i` indices are stored in
@@ -49,14 +53,12 @@ def select_scan (
     '''
     
     h, w = config.size_i, config.size_j
-    n_poses, m_beams, _ = poses.shape[0]
+    n_scans = scans.shape[0]
 
     # Reshape scan data
-    glob_scans = scans.reshape(-1, 3)
-    lx, ly = glob_scans[:, 0], glob_scans[:, 1]
+    lx, ly = scans[:, 0], scans[:, 1]
 
     # Get cos(theta) and sin(theta) for all poses for each beam
-    pose_idxs = np.repeat(np.arange(n_poses), m_beams)
     thetas = poses[pose_idxs, 2]
     cos_t, sin_t = np.cos(thetas), np.sin(thetas)
 
@@ -75,11 +77,11 @@ def select_scan (
     grid_mask[flat_idxs] = True
 
     # Create hit mask
-    hit_mask = np.zeros(n_poses * m_beams, dtype=bool)
+    hit_mask = np.zeros(n_scans, dtype=bool)
     hit_mask[in_bounds] = grid_mask[rows[in_bounds] * w + cols[in_bounds]]
 
     # Generate 'jagged' output
-    sel_scans = glob_scans[hit_mask]
+    sel_scans = scans[hit_mask]
     sel_pose_idxs = pose_idxs[hit_mask]
 
     return sel_scans, sel_pose_idxs
